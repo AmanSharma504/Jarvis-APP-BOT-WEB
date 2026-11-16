@@ -36,18 +36,24 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(__dirname, '../.env') });
 dotenv.config();
 
-const {
-  TELEGRAM_BOT_TOKEN,
-  OPENROUTER_API_KEY,
-  OPENROUTER_MODEL = 'google/gemini-2.5-flash',
-  CARTESIA_API_KEY,
-  ACTIVATE_TELEGRAM_WEBHOOK_REPLACEMENT,
-} = process.env;
+const rawBotToken = process.env.TELEGRAM_BOT_TOKEN || '';
+const rawOpenRouterKey = process.env.OPENROUTER_API_KEY || '';
+const rawModel = process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+const rawCartesiaKey = process.env.CARTESIA_API_KEY || '';
+const rawOwnerId = process.env.BOT_OWNER_ID || '8780356432';
 
-if (!TELEGRAM_BOT_TOKEN) throw new Error('Missing TELEGRAM_BOT_TOKEN in .env');
-if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY in .env');
-if (ACTIVATE_TELEGRAM_WEBHOOK_REPLACEMENT !== 'true') {
-  throw new Error('Bridge is not activated. Set ACTIVATE_TELEGRAM_WEBHOOK_REPLACEMENT=true in .env');
+export const TELEGRAM_BOT_TOKEN = rawBotToken.replace(/^["']|["']$/g, '').trim();
+export const OPENROUTER_API_KEY = rawOpenRouterKey.replace(/^["']|["']$/g, '').trim();
+export const OPENROUTER_MODEL = rawModel.replace(/^["']|["']$/g, '').trim();
+export const CARTESIA_API_KEY = rawCartesiaKey.replace(/^["']|["']$/g, '').trim();
+export const BOT_OWNER_ID = rawOwnerId.replace(/^["']|["']$/g, '').trim();
+export const ACTIVATE_TELEGRAM_WEBHOOK_REPLACEMENT = 'true';
+
+if (!TELEGRAM_BOT_TOKEN) {
+  console.warn('[Jarvis Cloud Notice]: TELEGRAM_BOT_TOKEN not yet detected in environment. Web dashboard will stay active.');
+}
+if (!OPENROUTER_API_KEY) {
+  console.warn('[Jarvis Cloud Notice]: OPENROUTER_API_KEY not yet detected in environment.');
 }
 
 const telegramBase = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -4741,22 +4747,30 @@ export async function main() {
     console.log('[Whisper Init Note]:', err.message);
   });
   let verified = false;
-  while (!verified && !stopping) {
-    try {
-      const bot = await telegram('getMe');
-      botInfo = { id: bot.id, username: bot.username.toLowerCase() };
-      console.log(`Telegram Bot verified: @${bot.username} (ID: ${bot.id}, Name: ${bot.first_name})`);
-      await telegram('deleteWebhook', { drop_pending_updates: false }).catch(() => {});
-      console.log('Jarvis All-in-One Multi-Group Voice Bridge is ACTIVE.');
-      verified = true;
-    } catch (err) {
-      console.warn(`Connecting to Telegram... retrying in 2s: ${err.message}`);
-      await delay(2000);
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.warn('[Jarvis Cloud Notice]: No TELEGRAM_BOT_TOKEN provided. Telegram bot polling paused; Web OS running.');
+  } else {
+    while (!verified && !stopping) {
+      try {
+        const bot = await telegram('getMe');
+        botInfo = { id: bot.id, username: bot.username.toLowerCase() };
+        console.log(`Telegram Bot verified: @${bot.username} (ID: ${bot.id}, Name: ${bot.first_name})`);
+        await telegram('deleteWebhook', { drop_pending_updates: false }).catch(() => {});
+        console.log('Jarvis All-in-One Multi-Group Voice Bridge is ACTIVE.');
+        verified = true;
+      } catch (err) {
+        console.warn(`Connecting to Telegram... retrying in 2s: ${err.message}`);
+        await delay(2000);
+      }
     }
   }
 
   let offset = 0;
   while (!stopping) {
+    if (!TELEGRAM_BOT_TOKEN) {
+      await delay(10000);
+      continue;
+    }
     try {
       const updates = await telegram('getUpdates', {
         offset,

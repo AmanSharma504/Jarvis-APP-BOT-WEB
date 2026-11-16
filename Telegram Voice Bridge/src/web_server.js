@@ -76,6 +76,12 @@ export function createWebServer(context) {
 
       // ================= API ROUTES =================
 
+      // 0. Cloud Health Check
+      if ((pathname === '/health' || pathname === '/api/health') && req.method === 'GET') {
+        sendJSON(res, { ok: true, status: 'healthy', uptime: process.uptime() });
+        return;
+      }
+
       // 1. System & Bot Status
       if (pathname === '/api/status' && req.method === 'GET') {
         let vcOnline = false;
