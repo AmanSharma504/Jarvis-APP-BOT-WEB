@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JARVIS AI — All-in-One Voice Assistant & Control Hub</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00e5ff">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23070b14' stroke='%2300e5ff' stroke-width='6'/><circle cx='50' cy='50' r='20' fill='%2300e5ff'/></svg>">
+  <style>
+    :root {
+      --bg: #070b14;
+      --card-bg: rgba(14, 23, 42, 0.75);
+      --card-border: rgba(0, 229, 255, 0.25);
+      --cyan: #00e5ff;
+      --cyan-glow: 0 0 20px rgba(0, 229, 255, 0.4);
+      --gold: #ffb300;
+      --green: #00e676;
+      --red: #ff3d00;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.1) 0%, transparent 70%); }
+    
+    /* Header */
+    header { background: rgba(10, 15, 26, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo-box { display: flex; align-items: center; gap: 12px; }
+    .arc-reactor { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--cyan); display: flex; align-items: center; justify-content: center; box-shadow: var(--cyan-glow); animation: pulse 3s infinite; }
+    .arc-core { width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 15px rgba(0,229,255,0.4); } 50% { box-shadow: 0 0 28px rgba(0,229,255,0.8); } }
+    .logo-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 2px; color: #fff; }
+    .logo-title span { color: var(--cyan); }
+    .status-badges { display: flex; gap: 10px; align-items: center; }
+    .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-online { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+    
+    /* Navigation */
+    nav { display: flex; background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); padding: 14px 20px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; }
+    .tab-btn:hover { color: #fff; }
+    .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+    
+    /* Main Layout */
+    main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Cards */
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; backdrop-filter: blur(10px); margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .card-title { font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    
+    /* Terminal / Chat */
+    .chat-container { display: flex; flex-direction: column; height: 600px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
+    .msg { max-width: 80%; padding: 12px 18px; border-radius: 14px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+    .msg-user { align-self: flex-end; background: linear-gradient(135deg, #0088cc, #005580); color: #fff; border-bottom-right-radius: 2px; }
+    .msg-bot { align-self: flex-start; background: rgba(30, 41, 59, 0.8); border: 1px solid var(--card-border); color: #e2e8f0; border-bottom-left-radius: 2px; }
+    .audio-player-box { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .audio-player-box audio { width: 100%; height: 36px; border-radius: 8px; outline: none; }
+    
+    .chat-input-bar { display: flex; gap: 10px; padding: 14px; border-top: 1px solid rgba(255,255,255,0.08); align-items: center; }
+    .chat-input { flex: 1; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    .chat-input:focus { border-color: var(--cyan); box-shadow: var(--cyan-glow); }
+    .btn { background: var(--cyan); color: #000; font-weight: 700; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--cyan-glow); }
+    .btn-mic { background: rgba(255, 61, 0, 0.2); color: var(--red); border: 1px solid rgba(255, 61, 0, 0.4); }
+    .btn-mic.recording { background: var(--red); color: #fff; animation: pulseRed 1.2s infinite; }
+    @keyframes pulseRed { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .btn-gold { background: linear-gradient(135deg, #ffb300, #ff8f00); color: #000; }
+    
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 14px; padding: 18px; text-align: center; }
+    .stat-val { font-size: 2rem; font-weight: 800; color: var(--cyan); margin-bottom: 4px; }
+    .stat-lbl { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+    /* Table */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th { background: rgba(30, 41, 59, 0.6); padding: 12px 16px; color: var(--cyan); font-weight: 700; border-bottom: 1px solid var(--card-border); }
+    td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #cbd5e1; }
+    tr:hover { background: rgba(0, 229, 255, 0.04); }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
+
+    /* Media Studio */
+    .media-player-box { background: #000; border-radius: 14px; overflow: hidden; margin-top: 16px; position: relative; min-height: 240px; display: flex; align-items: center; justify-content: center; }
+    video, audio { width: 100%; border-radius: 12px; }
+    .media-info { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+
+    /* YouTube Progress Bar & Controls */
+    .yt-player-card { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-top: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .yt-progress-container { display: flex; align-items: center; gap: 12px; margin: 16px 0 12px 0; }
+    .yt-time { font-family: monospace; font-size: 0.85rem; color: #94a3b8; min-width: 45px; text-align: center; }
+    .yt-rail { flex: 1; height: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; position: relative; cursor: pointer; transition: height 0.15s ease; }
+    .yt-rail:hover { height: 10px; }
+    .yt-fill { height: 100%; background: #ff0000; border-radius: 4px; width: 0%; position: relative; }
+    .yt-scrubber { position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background: #ff0000; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 8px rgba(255,0,0,0.8); }
+    .yt-controls { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    
+    /* Live Mode Holographic Arc Reactor Orb & Waveform */
+    .live-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 520px; text-align: center; position: relative; padding: 24px 16px; }
+    .live-orb-wrapper { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin: 24px auto; cursor: pointer; }
+    .live-orb { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, #00f0ff 0%, #0077b6 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 50px rgba(0, 240, 255, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.8); position: relative; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 2; }
+    .live-orb-ring { position: absolute; border: 2px dashed rgba(0, 240, 255, 0.4); border-radius: 50%; width: 190px; height: 190px; animation: spinRing 14s linear infinite; }
+    .live-orb-outer { position: absolute; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 50%; width: 230px; height: 230px; animation: pulseOuter 3s ease-in-out infinite; }
+    @keyframes spinRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulseOuter { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.08); opacity: 0.8; } }
+    
+    .live-orb.state-listening { box-shadow: 0 0 70px rgba(0, 240, 255, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.9); animation: pulseListening 1.8s infinite ease-in-out; }
+    .live-orb.state-thinking { background: radial-gradient(circle, #ffd700 0%, #d97706 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 70px rgba(255, 215, 0, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.9); animation: spinRing 2s linear infinite; }
+    .live-orb.state-speaking { background: radial-gradient(circle, #10b981 0%, #059669 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 80px rgba(16, 185, 129, 0.95), inset 0 0 40px rgba(255, 255, 255, 0.95); animation: pulseSpeaking 1.2s infinite ease-in-out; }
+    @keyframes pulseListening { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes pulseSpeaking { 0%, 100% { transform: scale(1.02); } 50% { transform: scale(1.15); } }
+    
+    .live-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 999px; background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.35); color: var(--cyan); font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; letter-spacing: 0.5px; }
+    .live-subtitle-box { max-width: 680px; width: 100%; min-height: 85px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 18px 22px; font-size: 1.05rem; line-height: 1.6; color: #f1f5f9; margin-bottom: 20px; transition: all 0.2s; text-align: left; }
+    .live-wave-canvas { width: 100%; max-width: 500px; height: 50px; margin-bottom: 15px; border-radius: 8px; }
+    .live-controls-row { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+    /* APK Box */
+    .apk-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 20px; }
+    .apk-icon { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, #00e5ff, #0088cc); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin-bottom: 20px; box-shadow: var(--cyan-glow); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-box">
+      <div class="arc-reactor"><div class="arc-core"></div></div>
+      <div class="logo-title">J.A.R.V.I.S. <span>WEB OS</span></div>
+    </div>
+    <div class="status-badges">
+      <div class="badge badge-online"><div class="badge-dot"></div> <span id="header-bot-tag">@JarvisNehaVoice2026Bot</span></div>
+      <div class="badge badge-online"><div class="badge-dot"></div> <span id="header-asst-tag">❄️™ (@KALYOUG_ITACHI)</span></div>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab-btn active" onclick="switchTab('live')">⚡ Live Voice Mode</button>
+    <button class="tab-btn" onclick="switchTab('terminal')">💬 AI Terminal & Text</button>
+    <button class="tab-btn" onclick="switchTab('media')">🎵 Music & Movie Studio</button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">📊 Telegram Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('settings')">⚙️ Voice & Language</button>
+    <button class="tab-btn" onclick="switchTab('android')">📱 Android App & APK</button>
+  </nav>
+
+  <main>
+    <!-- TAB 0: LIVE VOICE MODE (CHATGPT / GEMINI LIVE) -->
+    <section id="tab-live" class="tab-pane active">
+      <div class="card live-container">
+        <div class="live-status-pill" id="live-status-pill">
+          <div class="badge-dot" id="live-status-dot"></div>
+          <span id="live-status-text">🔴 Live Mode Standby - Click Start to Talk</span>
+        </div>
+
+        <!-- Holographic Arc Reactor Orb -->
+        <div class="live-orb-wrapper" onclick="toggleLiveMode()" title="क्लिक करके लाइव बातचीत शुरू/बंद करें">
+          <div class="live-orb-outer"></div>
+          <div class="live-orb-ring"></div>
+          <div class="live-orb" id="live-orb">
+            <div style="font-size: 2.4rem;" id="live-orb-icon">🎙️</div>
+          </div>
+        </div>
+
+        <!-- Live Real-Time Audio Waveform Canvas -->
+        <canvas class="live-wave-canvas" id="live-wave-canvas"></canvas>
+
+        <!-- Live Subtitles & Dialogue Bubble -->
+        <div class="live-subtitle-box" id="live-subtitles">
+          <span style="color: var(--text-muted); font-size: 0.95rem;">
+            "Start Live Conversation" पर टैप करें और सीधे बात करें। कोई बटन दबाने की ज़रूरत नहीं—जार्विस लाइव सुनकर तुरंत अपनी प्राकृतिक आवाज़ में जवाब देगा।
+          </span>
+        </div>
+
+        <!-- Live Controls -->
+        <div class="live-controls-row">
+          <button class="btn btn-gold" id="btn-toggle-live" onclick="toggleLiveMode()" style="padding: 14px 28px; font-size: 1.05rem;">
+            ⚡ Start Live Conversation
+          </button>
+          <button class="btn" id="btn-live-mute" onclick="toggleLiveMute()" style="display: none; padding: 14px 20px;">
+            🎙️ Mute
+          </button>
+          <button class="btn" onclick="interruptSpeaking()" id="btn-live-interrupt" style="display: none; padding: 14px 20px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #f87171;">
+            ✋ Stop Jarvis Speaking
+          </button>
+        </div>
+
+        <!-- Live Mode Persona Status & AI Model Control -->
+        <div style="margin-top: 20px; display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;">
+          <div style="font-size: 0.85rem; color: var(--cyan); font-weight: 700;">
+            🎭 Voice: <span id="live-active-persona" style="color: #fff;">J.A.R.V.I.S. (Paul Bettany)</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 0.85rem; color: var(--gold); font-weight: 700;">⚡ AI Model:</label>
+            <select id="live-model-select" onchange="updateLiveModel()" style="background: rgba(15,23,42,0.85); color: #fff; border: 1px solid rgba(0,240,255,0.4); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer;">
+              <option value="google/gemini-2.5-flash" selected>⚡ Gemini Ultra-Fast (~200ms)</option>
+              <option value="google/gemini-2.5-flash:online">🌐 Gemini Live (Real-Time Web Search)</option>
+              <option value="openai/gpt-4o-mini">🚀 ChatGPT Fast (GPT-4o Mini)</option>
+              <option value="deepseek/deepseek-chat">🧠 DeepSeek V3</option>
+              <option value="meta-llama/llama-3.3-70b-instruct">🦙 Llama 3.3 70B</option>
+            </select>
+          </div>
+          <div class="live-status-pill" id="live-latency-pill" style="margin-bottom: 0; padding: 5px 14px; font-size: 0.8rem; background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399;">
+            ⚡ Supercomputer Speed Active (&lt;400ms)
+          </div>
+          <button class="btn btn-sm" onclick="switchTab('settings')" style="font-size: 0.8rem;">Change Voice / Language ⚙️</button>
+        </div>
+
+        <div style="margin-top: 16px; max-width: 600px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+          💡 <strong>ChatGPT / Gemini Live Experience:</strong> हैंड्स-फ्री नेचुरल बातचीत। आप सामान्य रूप से बोलते रहें, जार्विस बिना किसी रुकावट के लाइव सुनेगा और रिप्लाई करेगा। यदि आप बोलते हैं जब जार्विस बोल रहा हो, तो जार्विस तुरंत रुककर आपको सुनेगा (Barge-in Support)।
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 1: AI TERMINAL -->
+    <section id="tab-terminal" class="tab-pane">
+      <div class="card chat-container">
+        <!-- Live Mode Shortcut Banner -->
+        <div style="background: rgba(0,240,255,0.08); border: 1px solid rgba(0,240,255,0.3); border-radius: 10px; padding: 12px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <span style="font-size: 0.9rem; color: #cbd5e1;">⚡ <strong>हैंड्स-फ्री लाइव मोड:</strong> बिना टाइप किए सीधे बात करने के लिए लाइव मोड का उपयोग करें।</span>
+          <button class="btn btn-gold btn-sm" onclick="switchTab('live'); startLiveMode();" style="padding: 6px 14px;">🔴 लाइव मोड शुरू करें</button>
+        </div>
+
+        <div class="card-title">
+          <span>💬 J.A.R.V.I.S. Interactive AI Terminal</span>
+          <span style="font-size: 0.85rem; color: var(--cyan);" id="active-profile-indicator">Persona: J.A.R.V.I.S. | Lang: हिंदी</span>
+        </div>
+        <div class="chat-messages" id="chat-stream">
+          <div class="msg msg-bot">
+            नमस्ते सर! मैं जार्विस हूँ — आपका ऑल-इन-वन स्मार्ट AI, वॉइस और म्यूजिक असिस्टेंट। आप मुझसे लिखकर या सीधे माइक पर बोलकर बातचीत कर सकते हैं।
+          </div>
+        </div>
+        <div class="chat-input-bar">
+          <button class="btn btn-mic" id="mic-btn" onclick="toggleVoiceRecording()" title="माइक से बोलें">🎙️ बोलें</button>
+          <input type="text" class="chat-input" id="chat-text" placeholder="जार्विस से कुछ भी पूछें या कमांड दें..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button class="btn" onclick="sendChatMessage()">भेजें 🚀</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: MEDIA STUDIO -->
+    <section id="tab-media" class="tab-pane">
+      <div class="card">
+        <div class="card-title">🎵 Music, Movie & Voice Chat Live Streaming Studio</div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+          कोई भी गाना, वीडियो या मूवी खोजें। आप सीधे ब्राउज़र में चला सकते हैं या एक क्लिक से टेलीग्राम वॉइस चैट (VC) में स्ट्रीम कर सकते हैं।
+        </p>
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+          <input type="text" class="chat-input" id="media-search-input" placeholder="गाने, कलाकार या मूवी का नाम लिखें (उदा. Kesariya, Ranjhana, Pushpa)..." onkeydown="if(event.key==='Enter') searchMedia()">
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--cyan); cursor: pointer;">
+            <input type="checkbox" id="media-is-video"> 🎬 Full HD Video
+          </label>
+          <button class="btn btn-gold" onclick="searchMedia()">सर्च करें 🔍</button>
+        </div>
+
+        <div id="media-result-box" style="display: none;">
+          <div class="yt-player-card">
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+              <img id="media-thumb" src="" alt="Thumbnail" style="width: 140px; height: 90px; object-fit: cover; border-radius: 8px;">
+              <div style="flex: 1;">
+                <h3 id="media-title" style="color: #fff; font-size: 1.15rem; margin-bottom: 4px;">Track Title</h3>
+                <p id="media-artist" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2px;">Artist Name</p>
+                <p id="media-duration" style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">Duration: 03:45</p>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn" onclick="playInBrowser()">▶️ Play in Browser</button>
+                <button class="btn btn-gold" onclick="streamToTelegramVC()">📡 Stream to Telegram VC</button>
+              </div>
+            </div>
+
+            <!-- YouTube-Style Live Interactive Progress Bar -->
+            <div class="yt-progress-container" id="yt-progress-bar-wrap">
+              <span class="yt-time" id="yt-curr-time">00:00</span>
+              <div class="yt-rail" id="yt-rail" onclick="seekByClick(event)">
+                <div class="yt-fill" id="yt-fill">
+                  <div class="yt-scrubber"></div>
+                </div>
+              </div>
+              <span class="yt-time" id="yt-tot-time">03:45</span>
+            </div>
+
+            <!-- 10-Second Seek & Playback Controls -->
+            <div class="yt-controls">
+              <button class="btn btn-sm" onclick="seekRelative(-10)" title="Seek -10s">⏪ -10s</button>
+              <button class="btn btn-sm btn-gold" id="btn-toggle-play" onclick="toggleBrowserPlayback()">⏸️ Pause</button>
+              <button class="btn btn-sm" onclick="seekRelative(10)" title="Seek +10s">⏩ +10s</button>
+              <button class="btn btn-sm" onclick="stopAllPlayback()" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #f87171;">⏹️ Stop</button>
+            </div>
+            
+            <div class="media-player-box" id="browser-player-container" style="display: none; margin-top: 16px;">
+              <audio id="browser-audio-player" style="display: none;"></audio>
+              <video id="browser-video-player" style="display: none; max-height: 400px;"></video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: TELEGRAM DASHBOARD -->
+    <section id="tab-dashboard" class="tab-pane">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="stat-chats">0</div><div class="stat-lbl">कुल कनेक्टेड चैट</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-groups">0</div><div class="stat-lbl">टेलीग्राम ग्रुप्स</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-users">0</div><div class="stat-lbl">प्राइवेट यूज़र्स</div></div>
+        <div class="stat-card"><div class="stat-val" id="stat-uptime">0m</div><div class="stat-lbl">लाइव अपटाइम</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>📢 टेलीग्राम ब्रॉडकास्ट (सभी ग्रुप्स व सदस्यों को संदेश भेजें)</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" class="chat-input" id="broadcast-input" placeholder="ब्रॉडकास्ट संदेश टाइप करें...">
+          <button class="btn btn-gold" onclick="sendBroadcast()">📢 ब्रॉडकास्ट भेजें</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👥 कनेक्टेड ग्रुप्स, चैनल्स व यूज़र्स तालिका</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>चैट ID</th>
+                <th>नाम / शीर्षक</th>
+                <th>प्रकार</th>
+                <th>सक्रिय भाषा</th>
+                <th>सक्रिय वॉयस</th>
+                <th>कार्रवाई</th>
+              </tr>
+            </thead>
+            <tbody id="chats-table-body">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">डेटा लोड हो रहा है...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SETTINGS -->
+    <section id="tab-settings" class="tab-pane">
+      <div class="card">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <span>⚙️ AI वॉयस मॉडल व भाषा प्राथमिकताएं</span>
+          <span style="font-size: 0.85rem; color: var(--gold);" id="voices-badge">🎭 43 AI वॉयस मॉडल्स | 🌐 27 भाषाएँ सक्रिय</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+          <div>
+            <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--cyan);">🎭 AI वॉयस पर्सोना चुनें (सभी 43 मॉडल्स):</label>
+            <select class="chat-input" id="voice-select" onchange="updateSelectedVoice()" style="width: 100%; margin-bottom: 10px;">
+              <option value="mcu_jarvis">लोड हो रहा है...</option>
+            </select>
+            <button class="btn btn-sm btn-gold" id="btn-test-voice" onclick="testSelectedVoice()" style="width: 100%; padding: 8px 14px;">🔊 आवाज़ सुनें (Test Voice)</button>
+          </div>
+          <div>
+            <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--gold);">🌐 सक्रिय भाषा (कुल 27 भाषाएँ):</label>
+            <select class="chat-input" id="lang-select" onchange="updateSelectedLanguage()" style="width: 100%; margin-bottom: 10px;">
+              <option value="hi">लोड हो रहा है...</option>
+            </select>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+              💡 किसी भी वॉयस पर्सोना के साथ कोई भी भाषा चुनें; जार्विस उसी पर्सोना में भाषा बोलेगा।
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: ANDROID APP & APK -->
+    <section id="tab-android" class="tab-pane">
+      <div class="card apk-hero">
+        <div class="apk-icon">🤖</div>
+        <h2 style="font-size: 1.8rem; margin-bottom: 8px; color: #fff;">JARVIS Android App (v1.0.0)</h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5;">
+          जार्विस का पूर्ण एंड्रॉइड ऐप APK डाउनलोड करें या सीधे अपने मोबाइल ब्राउज़र से 1-क्लिक में होमस्क्रीन पर इंस्टॉल करें। वॉइस कमांड्स, लाइव म्यूजिक स्ट्रीमिंग, और टेलीग्राम ग्रुप/यूजर मैनेजमेंट सीधे अपने मोबाइल से इस्तेमाल करें।
+        </p>
+
+        <!-- Dynamic Mobile Access Box -->
+        <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px; padding: 18px 24px; margin-bottom: 28px; max-width: 540px; text-align: center;">
+          <div style="font-size: 0.85rem; color: var(--cyan); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px;">
+            📱 मोबाइल पर खोलने के लिए Wi-Fi लिंक
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
+            <code id="mobile-url" style="font-family: monospace; font-size: 1.15rem; color: #ffd700; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3);">http://192.168.31.126:3000</code>
+            <button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('mobile-url').textContent); alert('Link copied to clipboard!');" style="padding: 8px 14px; font-size: 0.85rem;">📋 Copy</button>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
+            अपने Android फ़ोन में Chrome खोलें और इस लिंक पर जाएं, फिर नीचे दिए गए बटन से तुरंत डाउनलोड या इंस्टॉल करें।
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px;">
+          <a href="/downloads/Jarvis_Assistant_v1.0.apk" class="btn btn-gold" download style="text-decoration: none; padding: 14px 28px; font-size: 1.05rem;">
+            📥 डाउनलोड करें Android APK (v1.0)
+          </a>
+          <button class="btn" onclick="installPWA()" style="padding: 14px 28px; font-size: 1.05rem;">
+            📲 मोबाइल होमस्क्रीन पर इंस्टॉल करें (PWA WebAPK)
+          </button>
+        </div>
+
+        <!-- Android Features Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; width: 100%; max-width: 650px; text-align: left; margin-top: 10px;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
+            <div style="color: var(--cyan); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🎙️ लाइव माइक वॉइस नोट्स</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">मोबाइल माइक से सीधे बात करें और तुरंत जार्विस से वॉइस उत्तर सुनें।</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
+            <div style="color: var(--gold); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🎵 VC और मीडिया प्लेयर</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">YouTube/JioSaavn गाने सर्च करें और एक क्लिक में Telegram VC में बजाएं।</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
+            <div style="color: var(--success); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">👥 पूर्ण टेलीग्राम कंट्रोल</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem;">सारे ग्रुप, चैनल, यूज़र्स देखें और ब्रॉडकास्ट संदेश मोबाइल से भेजें।</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentVoiceId = 'mcu_jarvis';
+    let currentLanguageCode = 'hi';
+    let currentAiModel = 'google/gemini-2.5-flash';
+    let currentMediaItem = null;
+    let deferredPrompt = null;
+
+    function updateLiveModel() {
+      const sel = document.getElementById('live-model-select');
+      if (sel) {
+        currentAiModel = sel.value;
+        const latPill = document.getElementById('live-latency-pill');
+        if (latPill) {
+          if (currentAiModel.includes(':online')) {
+            latPill.innerText = '🌐 Real-Time Web Search Active';
+            latPill.style.color = '#38bdf8';
+          } else {
+            latPill.innerText = '⚡ Supercomputer Speed Active (<400ms)';
+            latPill.style.color = '#34d399';
+          }
+        }
+      }
+    }
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(console.warn);
+    }
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      const el = document.getElementById('mobile-url');
+      if (el) el.textContent = window.location.origin;
+    }
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+      } else {
+        alert('अपने मोबाइल ब्राउज़र मेनू (⋮) पर टैप करें और "Add to Home Screen" या "Install App" चुनें।');
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('onclick')?.includes(`'${tabId}'`)) b.classList.add('active');
+      });
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      const targetPane = document.getElementById(`tab-${tabId}`);
+      if (targetPane) targetPane.classList.add('active');
+      if (tabId === 'dashboard') loadDashboardData();
+    }
+
+    // ==========================================
+    // CHATGPT / GEMINI LIVE VOICE ENGINE
+    // ==========================================
+    let isLiveModeActive = false;
+    let isLiveMuted = false;
+    let liveState = 'idle'; // 'idle', 'listening', 'thinking', 'speaking'
+    let liveRecognition = null;
+    let liveAudioCtx = null;
+    let liveAnalyser = null;
+    let liveMicStream = null;
+    let liveCurrentAudio = null;
+    let liveSilenceTimer = null;
+    let liveAccumulatedText = '';
+    let animFrameId = null;
+
+    function setLiveState(state) {
+      liveState = state;
+      const orb = document.getElementById('live-orb');
+      const icon = document.getElementById('live-orb-icon');
+      const statusPill = document.getElementById('live-status-pill');
+      const statusText = document.getElementById('live-status-text');
+      const btnToggle = document.getElementById('btn-toggle-live');
+      const btnMute = document.getElementById('btn-live-mute');
+      const btnInterrupt = document.getElementById('btn-live-interrupt');
+
+      if (!orb) return;
+
+      orb.classList.remove('state-listening', 'state-thinking', 'state-speaking');
+
+      if (state === 'idle') {
+        icon.innerText = '🎙️';
+        statusText.innerText = '🔴 Live Mode Standby - Click Start to Talk';
+        statusPill.style.borderColor = 'rgba(0, 240, 255, 0.35)';
+        statusPill.style.color = 'var(--cyan)';
+        btnToggle.innerText = '⚡ Start Live Conversation';
+        btnToggle.className = 'btn btn-gold';
+        btnMute.style.display = 'none';
+        btnInterrupt.style.display = 'none';
+      } else if (state === 'listening') {
+        orb.classList.add('state-listening');
+        icon.innerText = isLiveMuted ? '🔇' : '🎙️';
+        statusText.innerText = isLiveMuted ? '🔇 Mic Muted - Click Unmute' : '🎧 Listening... Speak freely, no buttons needed';
+        statusPill.style.borderColor = 'var(--cyan)';
+        statusPill.style.color = 'var(--cyan)';
+        btnToggle.innerText = '⏹️ End Live Mode';
+        btnToggle.className = 'btn';
+        btnMute.style.display = 'inline-block';
+        btnInterrupt.style.display = 'none';
+      } else if (state === 'thinking') {
+        orb.classList.add('state-thinking');
+        icon.innerText = '🧠';
+        statusText.innerText = '🧠 Jarvis is thinking...';
+        statusPill.style.borderColor = 'var(--gold)';
+        statusPill.style.color = 'var(--gold)';
+        btnMute.style.display = 'inline-block';
+        btnInterrupt.style.display = 'none';
+      } else if (state === 'speaking') {
+        orb.classList.add('state-speaking');
+        icon.innerText = '🗣️';
+        statusText.innerText = '🗣️ Jarvis is speaking... (Speak anytime to interrupt)';
+        statusPill.style.borderColor = 'var(--success)';
+        statusPill.style.color = 'var(--success)';
+        btnMute.style.display = 'inline-block';
+        btnInterrupt.style.display = 'inline-block';
+      }
+    }
+
+    function initLiveCanvas() {
+      const canvas = document.getElementById('live-wave-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth > 500 ? 500 : canvas.parentElement.clientWidth - 40;
+      canvas.height = 50;
+
+      function renderWave() {
+        animFrameId = requestAnimationFrame(renderWave);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        if (liveState === 'listening' || liveState === 'speaking') {
+          let energy = 10;
+          if (liveAnalyser) {
+            const data = new Uint8Array(liveAnalyser.frequencyBinCount);
+            liveAnalyser.getByteFrequencyData(data);
+            let sum = 0;
+            for (let i = 0; i < 32; i++) sum += data[i];
+            energy = Math.max(10, (sum / 32) * 0.8);
+          }
+
+          ctx.beginPath();
+          ctx.strokeStyle = liveState === 'speaking' ? '#10b981' : '#00f0ff';
+          ctx.lineWidth = 2.5;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = ctx.strokeStyle;
+
+          const numPoints = 30;
+          const sliceWidth = canvas.width / numPoints;
+          const time = Date.now() * 0.005;
+
+          for (let i = 0; i <= numPoints; i++) {
+            const x = i * sliceWidth;
+            const distFromCenter = Math.abs(x - cx) / cx;
+            const envelope = 1 - Math.pow(distFromCenter, 2);
+            const y = cy + Math.sin(time + i * 0.4) * (energy * 0.7 * envelope);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        } else if (liveState === 'thinking') {
+          ctx.beginPath();
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#ffd700';
+          const time = Date.now() * 0.008;
+          for (let x = 0; x <= canvas.width; x += 10) {
+            const y = cy + Math.sin(time + x * 0.05) * 8;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+      }
+      renderWave();
+    }
+
+    async function startLiveMode() {
+      if (isLiveModeActive) return;
+      isLiveModeActive = true;
+      isLiveMuted = false;
+
+      // 1. Request microphone access for audio analyzer
+      try {
+        liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        liveAudioCtx = new AudioContext();
+        const source = liveAudioCtx.createMediaStreamSource(liveMicStream);
+        liveAnalyser = liveAudioCtx.createAnalyser();
+        liveAnalyser.fftSize = 64;
+        source.connect(liveAnalyser);
+      } catch (e) {
+        console.warn('Microphone stream analyzer note:', e.message);
+      }
+
+      // 2. Initialize continuous SpeechRecognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('आपके ब्राउज़र में रियल-टाइम स्पीच रिकग्निशन उपलब्ध नहीं है। कृपया गूगल क्रोम या एज का उपयोग करें।');
+        setLiveState('idle');
+        isLiveModeActive = false;
+        return;
+      }
+
+      liveRecognition = new SpeechRecognition();
+      liveRecognition.continuous = true;
+      liveRecognition.interimResults = true;
+      liveRecognition.lang = currentLanguageCode === 'en' ? 'en-US' : (currentLanguageCode === 'pa' ? 'pa-IN' : 'hi-IN');
+
+      liveRecognition.onresult = event => {
+        if (!isLiveModeActive || isLiveMuted) return;
+
+        // Barge-in: If user speaks while Jarvis is talking, immediately silence Jarvis!
+        if (liveState === 'speaking') {
+          interruptSpeaking();
+        }
+
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const trans = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            liveAccumulatedText += ' ' + trans;
+          } else {
+            interim += trans;
+          }
+        }
+
+        const currentSaid = (liveAccumulatedText + ' ' + interim).trim();
+        if (currentSaid) {
+          const sub = document.getElementById('live-subtitles');
+          if (sub) {
+            sub.innerHTML = `<span style="color: var(--cyan); font-weight: 700;">You:</span> <span style="color: #fff;">${currentSaid}</span>`;
+          }
+
+          // Supercomputer-Fast Voice Activity Detection (VAD): 280ms silence trigger
+          if (liveSilenceTimer) clearTimeout(liveSilenceTimer);
+          liveSilenceTimer = setTimeout(() => {
+            const finalQuery = currentSaid.trim();
+            if (finalQuery.length > 1 && isLiveModeActive && liveState === 'listening') {
+              sendLiveTurn(finalQuery);
+            }
+          }, 280);
+        }
+      };
+
+      liveRecognition.onerror = event => {
+        if (event.error === 'no-speech') return;
+        console.warn('Live recognition note:', event.error);
+      };
+
+      liveRecognition.onend = () => {
+        // Auto-restart recognition to keep continuous session live
+        if (isLiveModeActive && !isLiveMuted && liveState !== 'speaking') {
+          setTimeout(() => {
+            try {
+              if (isLiveModeActive && liveState !== 'speaking') liveRecognition.start();
+            } catch {}
+          }, 150);
+        }
+      };
+
+      try {
+        liveRecognition.start();
+      } catch {}
+
+      setLiveState('listening');
+      initLiveCanvas();
+
+      const personaLabel = document.getElementById('live-active-persona');
+      const vSelect = document.getElementById('voice-select');
+      if (personaLabel && vSelect && vSelect.selectedOptions && vSelect.selectedOptions[0]) {
+        personaLabel.innerText = vSelect.selectedOptions[0].text;
+      }
+    }
+
+    async function sendLiveTurn(text) {
+      if (!text || !isLiveModeActive) return;
+      liveAccumulatedText = '';
+      setLiveState('thinking');
+
+      const sub = document.getElementById('live-subtitles');
+      if (sub) {
+        sub.innerHTML = `
+          <div style="color: var(--cyan); margin-bottom: 6px;"><strong>You:</strong> ${text}</div>
+          <div style="color: var(--gold);"><span class="badge-dot" style="display:inline-block; margin-right:4px;"></span> जार्विस विचार कर रहा है...</div>
+        `;
+      }
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            voiceId: currentVoiceId,
+            languageCode: currentLanguageCode,
+            isLive: true,
+            model: currentAiModel || 'google/gemini-2.5-flash',
+          })
+        });
+
+        const data = await res.json();
+        if (!isLiveModeActive) return;
+
+        if (data.ok) {
+          setLiveState('speaking');
+          if (data.latencyMs) {
+            const latPill = document.getElementById('live-latency-pill');
+            if (latPill) {
+              const modelShort = data.model ? data.model.split('/')[1] : 'Supercomputer';
+              latPill.innerText = `⚡ ${data.latencyMs}ms (${modelShort})`;
+            }
+          }
+          if (sub) {
+            sub.innerHTML = `
+              <div style="color: var(--cyan); margin-bottom: 6px;"><strong>You:</strong> ${text}</div>
+              <div style="color: var(--success); font-weight: 500;"><strong>Jarvis:</strong> ${data.reply}</div>
+            `;
+          }
+
+          if (data.audioUrl) {
+            if (liveCurrentAudio) {
+              liveCurrentAudio.pause();
+              liveCurrentAudio = null;
+            }
+            liveCurrentAudio = new Audio(data.audioUrl);
+            liveCurrentAudio.onended = () => {
+              liveCurrentAudio = null;
+              if (isLiveModeActive) {
+                setLiveState('listening');
+                try {
+                  liveRecognition.start();
+                } catch {}
+              }
+            };
+            liveCurrentAudio.onerror = () => {
+              liveCurrentAudio = null;
+              if (isLiveModeActive) setLiveState('listening');
+            };
+            await liveCurrentAudio.play().catch(() => {
+              if (isLiveModeActive) setLiveState('listening');
+            });
+          } else {
+            setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
+          }
+        } else {
+          if (sub) sub.innerHTML = `<span style="color: var(--red);">त्रुटि: ${data.error || 'उत्तर नहीं मिला'}</span>`;
+          setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
+        }
+      } catch (err) {
+        if (sub) sub.innerHTML = `<span style="color: var(--red);">कनेक्शन समस्या: ${err.message}</span>`;
+        setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
+      }
+    }
+
+    function interruptSpeaking() {
+      if (liveCurrentAudio) {
+        liveCurrentAudio.pause();
+        liveCurrentAudio.currentTime = 0;
+        liveCurrentAudio = null;
+      }
+      liveAccumulatedText = '';
+      if (isLiveModeActive) {
+        setLiveState('listening');
+        try { liveRecognition.start(); } catch {}
+      }
+    }
+
+    function toggleLiveMute() {
+      isLiveMuted = !isLiveMuted;
+      const btn = document.getElementById('btn-live-mute');
+      if (btn) btn.innerText = isLiveMuted ? '🔇 Unmute' : '🎙️ Mute';
+      if (isLiveMuted) {
+        if (liveRecognition) { try { liveRecognition.stop(); } catch {} }
+        setLiveState('listening');
+      } else {
+        if (liveRecognition) { try { liveRecognition.start(); } catch {} }
+        setLiveState('listening');
+      }
+    }
+
+    function stopLiveMode() {
+      isLiveModeActive = false;
+      isLiveMuted = false;
+      if (liveSilenceTimer) clearTimeout(liveSilenceTimer);
+      if (liveCurrentAudio) {
+        liveCurrentAudio.pause();
+        liveCurrentAudio = null;
+      }
+      if (liveRecognition) {
+        try { liveRecognition.stop(); } catch {}
+        liveRecognition = null;
+      }
+      if (liveMicStream) {
+        liveMicStream.getTracks().forEach(t => t.stop());
+        liveMicStream = null;
+      }
+      if (liveAudioCtx) {
+        try { liveAudioCtx.close(); } catch {}
+        liveAudioCtx = null;
+      }
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      setLiveState('idle');
+      const sub = document.getElementById('live-subtitles');
+      if (sub) {
+        sub.innerHTML = `<span style="color: var(--text-muted); font-size: 0.95rem;">"Start Live Conversation" पर टैप करें और सीधे बात करें। कोई बटन दबाने की ज़रूरत नहीं—जार्विस लाइव सुनकर तुरंत जवाब देगा।</span>`;
+      }
+    }
+
+    function toggleLiveMode() {
+      if (isLiveModeActive) {
+        stopLiveMode();
+      } else {
+        startLiveMode();
+      }
+    }
+
+    // AI Chat & Speech Synthesis
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-text');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage(text, 'user');
+      input.value = '';
+
+      const typingMsg = appendMessage('विचार कर रहा हूँ...', 'bot');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            voiceId: currentVoiceId,
+            languageCode: currentLanguageCode,
+            model: currentAiModel,
+          })
+        });
+        const data = await res.json();
+        typingMsg.remove();
+
+        if (data.ok) {
+          const msgEl = appendMessage(data.reply, 'bot');
+          if (data.audioUrl) {
+            const playerBox = document.createElement('div');
+            playerBox.className = 'audio-player-box';
+            playerBox.innerHTML = `<audio controls autoplay src="${data.audioUrl}"></audio>`;
+            msgEl.appendChild(playerBox);
+          }
+        } else {
+          appendMessage('त्रुटि: ' + (data.error || 'प्रक्रिया विफल'), 'bot');
+        }
+      } catch (err) {
+        typingMsg.remove();
+        appendMessage('कनेक्शन समस्या: ' + err.message, 'bot');
+      }
+    }
+
+    function appendMessage(text, sender) {
+      const stream = document.getElementById('chat-stream');
+      const msg = document.createElement('div');
+      msg.className = `msg msg-${sender}`;
+      msg.innerText = text;
+      stream.appendChild(msg);
+      stream.scrollTop = stream.scrollHeight;
+      return msg;
+    }
+
+    // Speech-to-Text Microphone Recording
+    let recognition = null;
+    let isRecording = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'hi-IN';
+
+      recognition.onresult = event => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('chat-text').value = transcript;
+        sendChatMessage();
+      };
+      recognition.onend = () => {
+        isRecording = false;
+        document.getElementById('mic-btn').classList.remove('recording');
+        document.getElementById('mic-btn').innerText = '🎙️ बोलें';
+      };
+    }
+
+    function toggleVoiceRecording() {
+      if (!recognition) {
+        alert('आपके ब्राउज़र में स्पीच रिकग्निशन उपलब्ध नहीं है। कृपया गूगल क्रोम का उपयोग करें।');
+        return;
+      }
+      const btn = document.getElementById('mic-btn');
+      if (!isRecording) {
+        recognition.lang = currentLanguageCode === 'en' ? 'en-US' : (currentLanguageCode === 'pa' ? 'pa-IN' : 'hi-IN');
+        recognition.start();
+        isRecording = true;
+        btn.classList.add('recording');
+        btn.innerText = '🔴 सुन रहा हूँ...';
+      } else {
+        recognition.stop();
+      }
+    }
+
+    // Media Search & Play
+    async function searchMedia() {
+      const query = document.getElementById('media-search-input').value.trim();
+      const isVideo = document.getElementById('media-is-video').checked;
+      if (!query) return;
+
+      const resBox = document.getElementById('media-result-box');
+      resBox.style.display = 'block';
+      document.getElementById('media-title').innerText = 'खोज रहा हूँ: ' + query + '...';
+
+      try {
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&is_video=${isVideo}`);
+        const data = await res.json();
+        if (data.success) {
+          currentMediaItem = data;
+          document.getElementById('media-title').innerText = data.title;
+          document.getElementById('media-artist').innerText = data.artist || 'YouTube Media';
+          document.getElementById('media-duration').innerText = 'अवधि: ' + (data.duration || 'Live');
+          document.getElementById('media-thumb').src = data.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300';
+        } else {
+          document.getElementById('media-title').innerText = 'त्रुटि: ' + (data.error || 'मीडिया नहीं मिला');
+        }
+      } catch (e) {
+        document.getElementById('media-title').innerText = 'सर्च विफल: ' + e.message;
+      }
+    }
+
+    let activePlayer = null;
+    let isVcStreaming = false;
+
+    function formatSecs(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function updateProgressBar(cur, tot) {
+      if (!tot || isNaN(tot) || tot <= 0) return;
+      const pct = Math.min(100, Math.max(0, (cur / tot) * 100));
+      const fill = document.getElementById('yt-fill');
+      if (fill) fill.style.width = `${pct}%`;
+      const currLabel = document.getElementById('yt-curr-time');
+      if (currLabel) currLabel.innerText = formatSecs(cur);
+      const totLabel = document.getElementById('yt-tot-time');
+      if (totLabel) totLabel.innerText = formatSecs(tot);
+    }
+
+    function setupPlayerEvents(player) {
+      player.ontimeupdate = () => {
+        updateProgressBar(player.currentTime, player.duration || currentMediaItem?.duration_seconds || 0);
+      };
+      player.onplay = () => {
+        const btn = document.getElementById('btn-toggle-play');
+        if (btn) btn.innerText = '⏸️ Pause';
+      };
+      player.onpause = () => {
+        const btn = document.getElementById('btn-toggle-play');
+        if (btn) btn.innerText = '▶️ Play';
+      };
+    }
+
+    function playInBrowser() {
+      if (!currentMediaItem || !currentMediaItem.stream_url) return;
+      const container = document.getElementById('browser-player-container');
+      const audioP = document.getElementById('browser-audio-player');
+      const videoP = document.getElementById('browser-video-player');
+
+      container.style.display = 'flex';
+      setupPlayerEvents(audioP);
+      setupPlayerEvents(videoP);
+
+      if (currentMediaItem.is_video) {
+        audioP.style.display = 'none';
+        audioP.pause();
+        videoP.style.display = 'block';
+        videoP.src = currentMediaItem.stream_url;
+        videoP.play();
+        activePlayer = videoP;
+      } else {
+        videoP.style.display = 'none';
+        videoP.pause();
+        audioP.style.display = 'block';
+        audioP.src = currentMediaItem.stream_url;
+        audioP.play();
+        activePlayer = audioP;
+      }
+      if (currentMediaItem.duration_seconds) {
+        document.getElementById('yt-tot-time').innerText = formatSecs(currentMediaItem.duration_seconds);
+      }
+    }
+
+    async function seekRelative(deltaSec) {
+      if (activePlayer && !isNaN(activePlayer.currentTime)) {
+        activePlayer.currentTime = Math.max(0, activePlayer.currentTime + deltaSec);
+        updateProgressBar(activePlayer.currentTime, activePlayer.duration || currentMediaItem?.duration_seconds || 0);
+      }
+      if (isVcStreaming) {
+        const curSec = activePlayer ? activePlayer.currentTime : 0;
+        await fetch('/api/music/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'seek', seconds: Math.max(0, Math.floor(curSec + deltaSec)) })
+        }).catch(() => {});
+      }
+    }
+
+    async function toggleBrowserPlayback() {
+      if (activePlayer) {
+        if (activePlayer.paused) {
+          activePlayer.play();
+          if (isVcStreaming) fetch('/api/music/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume' }) }).catch(() => {});
+        } else {
+          activePlayer.pause();
+          if (isVcStreaming) fetch('/api/music/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pause' }) }).catch(() => {});
+        }
+      }
+    }
+
+    async function stopAllPlayback() {
+      if (activePlayer) {
+        activePlayer.pause();
+        activePlayer.currentTime = 0;
+      }
+      updateProgressBar(0, currentMediaItem?.duration_seconds || 0);
+      isVcStreaming = false;
+      await fetch('/api/music/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stop' })
+      }).catch(() => {});
+    }
+
+    function seekByClick(e) {
+      const rail = document.getElementById('yt-rail');
+      if (!rail) return;
+      const rect = rail.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.min(1, Math.max(0, clickX / rect.width));
+      const tot = (activePlayer && activePlayer.duration) ? activePlayer.duration : (currentMediaItem?.duration_seconds || 0);
+      const targetSec = Math.floor(pct * tot);
+      if (activePlayer) activePlayer.currentTime = targetSec;
+      updateProgressBar(targetSec, tot);
+      if (isVcStreaming) {
+        fetch('/api/music/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'seek', seconds: targetSec })
+        }).catch(() => {});
+      }
+    }
+
+    async function streamToTelegramVC() {
+      if (!currentMediaItem) return;
+      alert(`Streaming "${currentMediaItem.title}" to Telegram Voice Chat...`);
+      try {
+        const res = await fetch('/api/music/stream_to_vc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chatId: '-1003988874168',
+            title: currentMediaItem.title,
+            filePath: currentMediaItem.file_path,
+            isVideo: currentMediaItem.is_video,
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          isVcStreaming = true;
+          alert('✅ Live streaming active in Telegram Voice Chat!');
+        } else {
+          alert('⚠️ Error: ' + (data.error || 'Failed to start stream'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+
+    // Dashboard Data
+    async function loadDashboardData() {
+      try {
+        const [statusRes, chatsRes] = await Promise.all([
+          fetch('/api/status').then(r => r.json()),
+          fetch('/api/chats').then(r => r.json()),
+        ]);
+
+        document.getElementById('stat-chats').innerText = statusRes.totalChats || 0;
+        document.getElementById('stat-groups').innerText = statusRes.totalGroups || 0;
+        document.getElementById('stat-users').innerText = statusRes.totalPrivateUsers || 0;
+        const mins = Math.floor((statusRes.uptimeSeconds || 0) / 60);
+        document.getElementById('stat-uptime').innerText = `${mins}m`;
+
+        const tbody = document.getElementById('chats-table-body');
+        tbody.innerHTML = '';
+        if (chatsRes.ok && chatsRes.chats) {
+          for (const c of chatsRes.chats) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><code>${c.id}</code></td>
+              <td><strong>${c.title || 'User'}</strong> ${c.username ? '@' + c.username : ''}</td>
+              <td><span class="badge ${c.type === 'private' ? 'badge-online' : 'badge-gold'}" style="background: rgba(255,255,255,0.1); color: #fff;">${c.type}</span></td>
+              <td>${c.activeLanguage}</td>
+              <td><code>${c.activeVoice}</code></td>
+              <td>
+                <button class="btn btn-sm" style="background: rgba(255,61,0,0.2); color: var(--red);" onclick="removeChat('${c.id}')">हटाएं</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+      } catch (e) {
+        console.warn('Dashboard load error:', e);
+      }
+    }
+
+    async function sendBroadcast() {
+      const text = document.getElementById('broadcast-input').value.trim();
+      if (!text) return;
+      if (!confirm('क्या आप सभी कनेक्टेड टेलीग्राम ग्रुप्स और यूज़र्स को यह ब्रॉडकास्ट भेजना चाहते हैं?')) return;
+
+      try {
+        const res = await fetch('/api/chats/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, targetType: 'all' })
+        });
+        const d = await res.json();
+        if (d.ok) {
+          alert(`✅ ब्रॉडकास्ट सफल! कुल भेजे गए: ${d.sentCount}`);
+          document.getElementById('broadcast-input').value = '';
+        }
+      } catch (e) {
+        alert('त्रुटि: ' + e.message);
+      }
+    }
+
+    async function removeChat(chatId) {
+      if (!confirm(`क्या आप चैट ID ${chatId} को हटाना चाहते हैं?`)) return;
+      await fetch('/api/chats/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId })
+      });
+      loadDashboardData();
+    }
+
+    async function loadVoicesAndLanguages() {
+      try {
+        const [voicesRes, langsRes] = await Promise.all([
+          fetch('/api/voices').then(r => r.json()),
+          fetch('/api/languages').then(r => r.json()),
+        ]);
+
+        if (voicesRes.ok && voicesRes.voices) {
+          const vSelect = document.getElementById('voice-select');
+          vSelect.innerHTML = '';
+
+          const groups = {
+            '🌟 MCU & Iconic Personas': [],
+            '🎙️ Indian Natural Voice Studio (30+ Models)': [],
+            '🌐 Regional & International Voices': [],
+          };
+
+          voicesRes.voices.forEach(v => {
+            if (v.id.startsWith('mcu_')) {
+              groups['🌟 MCU & Iconic Personas'].push(v);
+            } else if (v.id.startsWith('cartesia_') || v.id.startsWith('studio_')) {
+              groups['🎙️ Indian Natural Voice Studio (30+ Models)'].push(v);
+            } else {
+              groups['🌐 Regional & International Voices'].push(v);
+            }
+          });
+
+          for (const [grpName, vList] of Object.entries(groups)) {
+            if (vList.length === 0) continue;
+            const optGrp = document.createElement('optgroup');
+            optGrp.label = `${grpName} (${vList.length})`;
+            vList.forEach(v => {
+              const opt = document.createElement('option');
+              opt.value = v.id;
+              opt.textContent = `${v.name}${v.description ? ' — ' + v.description : ''}`;
+              if (v.id === currentVoiceId) opt.selected = true;
+              optGrp.appendChild(opt);
+            });
+            vSelect.appendChild(optGrp);
+          }
+        }
+
+        if (langsRes.ok && langsRes.languages) {
+          const lSelect = document.getElementById('lang-select');
+          lSelect.innerHTML = '';
+          for (const [code, l] of Object.entries(langsRes.languages)) {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = `${l.name} (${code.toUpperCase()})`;
+            if (code === currentLanguageCode) opt.selected = true;
+            lSelect.appendChild(opt);
+          }
+        }
+
+        updateIndicator();
+      } catch (err) {
+        console.warn('Failed to dynamically populate voices/languages:', err);
+      }
+    }
+
+    async function testSelectedVoice() {
+      const vSelect = document.getElementById('voice-select');
+      const vId = vSelect.value;
+      const lSelect = document.getElementById('lang-select');
+      const lCode = lSelect.value;
+      const testBtn = document.getElementById('btn-test-voice');
+      if (testBtn) testBtn.innerText = '⏳ आवाज़ तैयार हो रही है...';
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: 'नमस्ते! यह मेरी आवाज़ का परीक्षण है।',
+            voiceId: vId,
+            languageCode: lCode,
+          }),
+        });
+        const data = await res.json();
+        if (data.ok && data.audioUrl) {
+          const snd = new Audio(`/cache/${data.audioUrl}`);
+          snd.play();
+        }
+      } catch (e) {
+        alert('वॉयस टेस्ट त्रुटि: ' + e.message);
+      } finally {
+        if (testBtn) testBtn.innerText = '🔊 आवाज़ सुनें (Test Voice)';
+      }
+    }
+
+    function updateSelectedVoice() {
+      currentVoiceId = document.getElementById('voice-select').value;
+      updateIndicator();
+    }
+
+    function updateSelectedLanguage() {
+      currentLanguageCode = document.getElementById('lang-select').value;
+      updateIndicator();
+    }
+
+    function updateIndicator() {
+      const vSelect = document.getElementById('voice-select');
+      const lSelect = document.getElementById('lang-select');
+      const vName = vSelect.selectedOptions && vSelect.selectedOptions[0] ? vSelect.selectedOptions[0].text : currentVoiceId;
+      const lName = lSelect.selectedOptions && lSelect.selectedOptions[0] ? lSelect.selectedOptions[0].text : currentLanguageCode;
+      const ind = document.getElementById('active-profile-indicator');
+      if (ind) {
+        ind.innerText = `Persona: ${vName.split('(')[0].split('—')[0].trim()} | Lang: ${lName.split('(')[0].trim()}`;
+      }
+    }
+
+    // Initialize all dynamic modules
+    loadDashboardData();
+    loadVoicesAndLanguages();
+  </script>
+</body>
+</html>

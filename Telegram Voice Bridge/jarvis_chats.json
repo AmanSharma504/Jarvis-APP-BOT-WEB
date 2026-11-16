@@ -1,0 +1,41 @@
+{
+  "ownerId": 8780356432,
+  "chats": {
+    "8780356432": {
+      "id": 8780356432,
+      "type": "private",
+      "title": "Singh",
+      "username": "Hello_Bro_670",
+      "firstSeen": 1794761689705,
+      "lastSeen": 1794854527510,
+      "active": true
+    },
+    "8573284604": {
+      "id": 8573284604,
+      "type": "private",
+      "title": "❄️™",
+      "username": "My_Baby_002",
+      "firstSeen": 1794809359139,
+      "lastSeen": 1794809359141,
+      "active": true
+    },
+    "-5371792866": {
+      "id": -5371792866,
+      "type": "group",
+      "title": "Test.Org",
+      "username": "Hello_Bro_670",
+      "firstSeen": 1794809773134,
+      "lastSeen": 1794809793727,
+      "active": true
+    },
+    "-1003988874168": {
+      "id": -1003988874168,
+      "type": "supergroup",
+      "title": "Test.Org",
+      "username": "GroupAnonymousBot",
+      "firstSeen": 1794809793139,
+      "lastSeen": 1794854634264,
+      "active": true
+    }
+  }
+}

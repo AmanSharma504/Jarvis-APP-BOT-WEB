@@ -1,0 +1,56 @@
+# ==========================================
+# JARVIS ECOSYSTEM - GIT IGNORE
+# ==========================================
+
+# Security & Credentials - NEVER COMMIT SECRETS
+.env
+*.env
+.env.*
+!.env.example
+*.session
+*.session-journal
+*.pem
+*.key
+
+# Node Dependencies & Logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+build/
+dist/
+*.egg-info/
+
+# Media & Temporary Runtime Cache
+cache/
+*/cache/
+public/audio/*.mp3
+public/audio/*.ogg
+*.part
+*.ytdl
+
+# Large Compiled Binaries
+binaries/
+*/binaries/
+*.dylib
+ollama-*
+
+# Operating System & Editor Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+.vscode/
+.idea/

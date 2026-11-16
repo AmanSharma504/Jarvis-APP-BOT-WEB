@@ -1,0 +1,14 @@
+.env
+*.env
+.env.*
+!.env.example
+node_modules/
+cache/
+public/audio/*.mp3
+public/audio/*.ogg
+*.ogg
+*.session
+*.session-journal
+__pycache__/
+*.pyc
+.DS_Store
