@@ -22,16 +22,45 @@ BIN_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../bin"))
 if os.path.exists(BIN_DIR):
     os.environ["PATH"] = f"{BIN_DIR}:{os.environ.get('PATH', '')}"
 
+# Safe dependency check with zero-crash standard library fallback
+HAS_DEPS = False
+try:
+    from aiohttp import web
+    from pyrogram import Client
+    from pytgcalls import PyTgCalls
+    from pytgcalls.types import MediaStream, AudioQuality, VideoQuality, StreamEnded, GroupCallConfig
+    HAS_DEPS = True
+except ImportError as e:
+    logger.warning(f"[VC Server] VC dependencies missing: {e}. Starting zero-crash HTTP fallback.")
+    HAS_DEPS = False
+
+if not HAS_DEPS:
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    class StubHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"degraded","vcOnline":false}')
+        def do_POST(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"ok":false,"error":"PyTgCalls dependencies not installed"}')
+        def log_message(self, format, *args):
+            pass
+
+    server = HTTPServer(("127.0.0.1", 8765), StubHandler)
+    logger.info("Jarvis VC Fallback Server listening on http://127.0.0.1:8765")
+    server.serve_forever()
+    sys.exit(0)
+
 # Initialize event loop for Python 3.14 compatibility before pyrogram imports
 try:
     asyncio.get_event_loop()
 except RuntimeError:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-
-from pyrogram import Client
-from pytgcalls import PyTgCalls
-from pytgcalls.types import MediaStream, AudioQuality, VideoQuality, StreamEnded, GroupCallConfig
 
 ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.env")
 
