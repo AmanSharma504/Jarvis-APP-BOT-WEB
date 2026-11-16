@@ -7,11 +7,27 @@ Maintains persistent WebRTC connection for instant play, pause, resume, skip, st
 
 import sys
 import os
+import site
 import asyncio
 import json
 import logging
 import signal
-from aiohttp import web
+
+# Dynamically ensure all user-installed site-packages (e.g. on Render) are loaded
+try:
+    for p in (site.getsitepackages() if hasattr(site, 'getsitepackages') else []) + [site.getusersitepackages()]:
+        if p and os.path.exists(p) and p not in sys.path:
+            sys.path.insert(0, p)
+except Exception:
+    pass
+
+for candidate in [
+    "/opt/render/.local/lib/python3.11/site-packages",
+    "/opt/render/.local/lib/python3.12/site-packages",
+    os.path.expanduser("~/.local/lib/python3.11/site-packages")
+]:
+    if os.path.exists(candidate) and candidate not in sys.path:
+        sys.path.insert(0, candidate)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

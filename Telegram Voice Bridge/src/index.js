@@ -4521,6 +4521,8 @@ function startVcServer() {
       PATH: `${binDir}:${process.env.PATH}`,
       PYTHONPATH: [
         __dirname,
+        '/opt/render/.local/lib/python3.11/site-packages',
+        '/opt/render/.local/lib/python3.12/site-packages',
         join(__dirname, '../../OpenJarvis/src'),
         process.env.PYTHONPATH,
       ].filter(Boolean).join(':'),
@@ -4539,7 +4541,7 @@ function startVcServer() {
   vcServerProcess.on('close', code => {
     console.warn(`[VC Server] Closed with code ${code}.`);
     if (!stopping) {
-      setTimeout(startVcServer, 3000);
+      setTimeout(startVcServer, 8000);
     }
   });
 }
