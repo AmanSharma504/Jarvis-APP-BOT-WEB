@@ -4686,7 +4686,7 @@ async function cleanOldCacheFilesAndMemory() {
   }
 }
 
-async function main() {
+export async function main() {
   await loadLearnings();
   await loadKnownChats();
   await cleanOldCacheFilesAndMemory();
@@ -4695,10 +4695,10 @@ async function main() {
   startVcServer();
   startInternalEventBridge();
 
-  // Start JARVIS Interactive Web OS, Music/Video Player & Telegram Dashboard on port 3000
+  // Start JARVIS Interactive Web OS, Music/Video Player & Telegram Dashboard
   try {
     createWebServer({
-      port: process.env.WEB_PORT || 3000,
+      port: process.env.PORT || process.env.WEB_PORT || 3000,
       knownChats,
       saveKnownChats: scheduleSaveKnownChats,
       userLearnings,
