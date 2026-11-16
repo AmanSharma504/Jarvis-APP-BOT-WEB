@@ -2,8 +2,12 @@
   "name": "jarvis",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "main": "index.js",
   "description": "Jarvis Telegram Voice Bridge",
   "scripts": {
-    "start": "npm --prefix \"Telegram Voice Bridge\" start"
+    "postinstall": "npm --prefix \"Telegram Voice Bridge\" install && (pip3 install --no-cache-dir pyrogram pytgcalls yt-dlp aiohttp || true)",
+    "build": "npm --prefix \"Telegram Voice Bridge\" install",
+    "start": "node index.js"
   }
 }
