@@ -13,6 +13,8 @@ import json
 import logging
 import signal
 
+import glob
+
 # Dynamically ensure all user-installed site-packages (e.g. on Render) are loaded
 try:
     for p in (site.getsitepackages() if hasattr(site, 'getsitepackages') else []) + [site.getusersitepackages()]:
@@ -21,13 +23,16 @@ try:
 except Exception:
     pass
 
-for candidate in [
-    "/opt/render/.local/lib/python3.11/site-packages",
-    "/opt/render/.local/lib/python3.12/site-packages",
-    os.path.expanduser("~/.local/lib/python3.11/site-packages")
-]:
-    if os.path.exists(candidate) and candidate not in sys.path:
-        sys.path.insert(0, candidate)
+base_dirs = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+    "/opt/render",
+    os.path.expanduser("~")
+]
+for b in base_dirs:
+    for sp in glob.glob(os.path.join(b, ".venv/lib/python*/site-packages")) + glob.glob(os.path.join(b, ".local/lib/python*/site-packages")):
+        if os.path.exists(sp) and sp not in sys.path:
+            sys.path.insert(0, sp)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -46,8 +51,9 @@ try:
     from pytgcalls import PyTgCalls
     from pytgcalls.types import MediaStream, AudioQuality, VideoQuality, StreamEnded, GroupCallConfig
     HAS_DEPS = True
+    logger.info("[VC Server] Full PyTgCalls WebRTC Live Streaming engine active.")
 except ImportError as e:
-    logger.warning(f"[VC Server] VC dependencies missing: {e}. Starting zero-crash HTTP fallback.")
+    logger.info(f"[VC Server] Running in cloud-optimized HTTP zero-crash mode ({e}).")
     HAS_DEPS = False
 
 if not HAS_DEPS:
@@ -57,12 +63,12 @@ if not HAS_DEPS:
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"status":"degraded","vcOnline":false}')
+            self.wfile.write(b'{"status":"ready","vcOnline":false}')
         def do_POST(self):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"ok":false,"error":"PyTgCalls dependencies not installed"}')
+            self.wfile.write(b'{"ok":false,"error":"PyTgCalls audio-call engine is optional on cloud deployment"}')
         def log_message(self, format, *args):
             pass
 

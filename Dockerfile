@@ -23,13 +23,13 @@ RUN npm --prefix "Telegram Voice Bridge" install
 COPY . .
 
 # Install Python requirements
-RUN pip3 install --no-cache-dir pyrogram pytgcalls yt-dlp aiohttp
+RUN pip3 install --no-cache-dir --break-system-packages pyrogram yt-dlp aiohttp || pip3 install --no-cache-dir pyrogram yt-dlp aiohttp
 
-# Expose port 3000
+# Expose port
 EXPOSE 3000
 
 ENV PORT=3000
 ENV NODE_ENV=production
 
 # Start Jarvis
-CMD ["node", "Telegram Voice Bridge/src/index.js"]
+CMD ["node", "index.js"]

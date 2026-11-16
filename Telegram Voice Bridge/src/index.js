@@ -4515,12 +4515,22 @@ let vcServerProcess = null;
 function startVcServer() {
   const scriptPath = join(__dirname, 'vc_server.py');
   const binDir = join(__dirname, '../bin');
-  vcServerProcess = spawn('python3', [scriptPath], {
+  const venvPythonRoot = resolve(__dirname, '../../.venv/bin/python3');
+  const venvPythonLocal = resolve(__dirname, '../.venv/bin/python3');
+  const pythonBin = existsSync(venvPythonRoot)
+    ? venvPythonRoot
+    : (existsSync(venvPythonLocal) ? venvPythonLocal : 'python3');
+
+  vcServerProcess = spawn(pythonBin, [scriptPath], {
     env: {
       ...process.env,
       PATH: `${binDir}:${process.env.PATH}`,
       PYTHONPATH: [
         __dirname,
+        resolve(__dirname, '../../.venv/lib/python3.11/site-packages'),
+        resolve(__dirname, '../../.venv/lib/python3.12/site-packages'),
+        resolve(__dirname, '../.venv/lib/python3.11/site-packages'),
+        resolve(__dirname, '../.venv/lib/python3.12/site-packages'),
         '/opt/render/.local/lib/python3.11/site-packages',
         '/opt/render/.local/lib/python3.12/site-packages',
         join(__dirname, '../../OpenJarvis/src'),
@@ -4536,10 +4546,10 @@ function startVcServer() {
   });
   vcServerProcess.stderr.on('data', d => {
     const text = d.toString().trim();
-    if (text) console.warn(`[VC Server] ${text}`);
+    if (text) console.log(`[VC Server] ${text}`);
   });
   vcServerProcess.on('close', code => {
-    console.warn(`[VC Server] Closed with code ${code}.`);
+    console.log(`[VC Server] Closed with code ${code}.`);
     if (!stopping) {
       setTimeout(startVcServer, 8000);
     }
@@ -4723,8 +4733,13 @@ export async function main() {
   } catch (webErr) {
     console.warn('[Web Server Warning]:', webErr.message);
   }
-  console.log('Pre-warming local Whisper speech engine...');
-  await getWhisper().catch(err => console.warn('Whisper prewarm warning:', err.message));
+  // Asynchronously initialize local speech engine in background so bot starts immediately
+  console.log('Initializing local Whisper speech engine in background...');
+  getWhisper().then(() => {
+    console.log('Local Whisper speech engine ready.');
+  }).catch(err => {
+    console.log('[Whisper Init Note]:', err.message);
+  });
   let verified = false;
   while (!verified && !stopping) {
     try {

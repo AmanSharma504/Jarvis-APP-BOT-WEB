@@ -6,7 +6,7 @@
   "main": "index.js",
   "description": "Jarvis Telegram Voice Bridge",
   "scripts": {
-    "postinstall": "npm --prefix \"Telegram Voice Bridge\" install && (pip3 install --no-cache-dir --break-system-packages aiohttp yt-dlp pyrogram || pip install --no-cache-dir aiohttp yt-dlp pyrogram || true) && (pip3 install --no-cache-dir --break-system-packages pytgcalls || true)",
+    "postinstall": "npm --prefix \"Telegram Voice Bridge\" install && (python3 -m venv .venv && ./.venv/bin/pip install --no-cache-dir aiohttp yt-dlp pyrogram || pip3 install --no-cache-dir --break-system-packages aiohttp yt-dlp pyrogram || pip install --no-cache-dir aiohttp yt-dlp pyrogram || true)",
     "build": "npm --prefix \"Telegram Voice Bridge\" install",
     "start": "node index.js"
   }
