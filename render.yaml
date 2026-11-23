@@ -1,25 +1,24 @@
 services:
   - type: web
     name: jarvis-ecosystem
-    runtime: node
+    env: docker
     plan: free
-    buildCommand: npm install
-    startCommand: node index.js
+    region: oregon
     healthCheckPath: /
     envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
-      - key: OPENROUTER_MODEL
-        value: google/gemini-2.5-flash
-      - key: ACTIVATE_TELEGRAM_WEBHOOK_REPLACEMENT
-        value: "true"
-      - key: CARTESIA_API_KEY
-        sync: false
-      - key: VOICE_NAME
-        value: mcu_jarvis
       - key: BOT_OWNER_ID
         sync: false
-      - key: NODE_ENV
-        value: production
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: TELEGRAM_SESSION_STRING
+        sync: false
