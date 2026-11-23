@@ -182,17 +182,31 @@ async def handle_play(request):
                 ffmpeg_parameters=audio_ffmpeg_params
             )
 
-        # 3. Stream into Voice Chat with retry/recovery (seamlessly switch stream without leaving call)
+        # 3. Stream into Voice Chat with retry/recovery (seamlessly join or switch stream)
         try:
             await pytgcalls.play(chat_id, stream, config=GroupCallConfig(auto_start=True))
         except Exception as play_err:
-            logger.warning(f"Initial play attempt note: {play_err}, checking existing call stream...")
-            try:
-                await pytgcalls.change_stream(chat_id, stream)
-            except Exception as change_err:
-                logger.warning(f"change_stream note: {change_err}, retrying play...")
-                await asyncio.sleep(0.5)
-                await pytgcalls.play(chat_id, stream, config=GroupCallConfig(auto_start=True))
+            play_err_str = str(play_err)
+            logger.warning(f"Initial play attempt note: {play_err_str}, checking call status...")
+            if "CHAT_ADMIN_REQUIRED" in play_err_str or "phone.CreateGroupCall" in play_err_str:
+                try:
+                    await pytgcalls.play(chat_id, stream, config=GroupCallConfig(auto_start=False))
+                except Exception as no_admin_err:
+                    raise Exception("CHAT_ADMIN_REQUIRED: Please start a Voice Chat in this group first, or promote assistant to admin.") from no_admin_err
+            else:
+                try:
+                    if hasattr(pytgcalls, "change_stream"):
+                        await pytgcalls.change_stream(chat_id, stream)
+                    else:
+                        try:
+                            await pytgcalls.leave_call(chat_id)
+                        except Exception:
+                            pass
+                        await asyncio.sleep(0.3)
+                        await pytgcalls.play(chat_id, stream)
+                except Exception as retry_err:
+                    logger.warning(f"Retry note: {retry_err}")
+                    await pytgcalls.play(chat_id, stream)
 
         active_streams[chat_id] = {
             "is_video": is_video,

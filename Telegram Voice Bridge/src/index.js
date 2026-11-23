@@ -544,15 +544,15 @@ function detectBestVoiceForText(text, defaultProfile) {
 // Ultra-Fast Diverse AI Models (Google Gemini, NVIDIA, OpenAI ChatGPT, DeepSeek, Meta Llama, Qwen)
 // Prioritizes top-tier Google Gemini, NVIDIA high-tech Nemotron, and OpenAI models.
 export const PRIMARY_AI_MODELS = [
-  'google/gemini-2.5-flash',                   // Google Gemini 2.5 Flash (~1.2s, 100% fluent Hindi, Ultra-Smart)
-  'nvidia/nemotron-3.5-lightning:free',         // NVIDIA Nemotron Lightning Free (~1.2s, ultra-low latency)
-  'nvidia/nemotron-3-ultra-550b-a55b:free',    // NVIDIA Nemotron 550B Ultra Free (Massive 550B high-tech model)
-  'openai/gpt-4o-mini',                        // OpenAI ChatGPT 4o-mini (~1.7s, highly consistent)
-  'google/gemini-2.5-pro',                     // Google Gemini Pro Deep Reasoning
-  'nvidia/nemotron-3.5-super-vl:free',         // NVIDIA Super Vision-Language 3.5 Free
-  'deepseek/deepseek-chat',                    // DeepSeek V3/Chat (~1.9s)
-  'meta-llama/llama-3.3-70b-instruct',           // Meta Llama 3.3 70B
-  'qwen/qwen-2.5-72b-instruct',                // Qwen 2.5 72B
+  'nvidia/nemotron-3.5-lightning:free',         // NVIDIA Nemotron Lightning Free (~0.9s, ultra-low latency, free)
+  'nvidia/nemotron-3-ultra-550b-a55b:free',    // NVIDIA Nemotron 550B Ultra Free (Massive 550B open model, free)
+  'deepseek/deepseek-chat',                    // DeepSeek V3 (Top Open-Source reasoning/chat)
+  'deepseek/deepseek-r1',                      // DeepSeek R1 (Open-source frontier reasoning)
+  'qwen/qwen-2.5-72b-instruct',                // Alibaba Qwen 2.5 72B (Open-source multilingual flagship)
+  'meta-llama/llama-3.3-70b-instruct',         // Meta Llama 3.3 70B (Open-source flagship)
+  'google/gemini-2.5-flash',                   // Google Gemini 2.5 Flash
+  'openai/gpt-4o-mini',                        // OpenAI ChatGPT 4o-mini
+  'openrouter/free',                           // Universal OpenRouter Free Tier
 ];
 
 const FALLBACK_MODELS = PRIMARY_AI_MODELS;
@@ -1113,6 +1113,37 @@ function getChatVoice(chatId) {
   return VOICE_PROFILES[index % VOICE_PROFILES.length];
 }
 
+export function findVoiceProfile(voiceIdOrName, profiles = VOICE_PROFILES) {
+  if (!voiceIdOrName) return profiles[0] || { id: 'mcu_jarvis', name: 'J.A.R.V.I.S.' };
+  const raw = String(voiceIdOrName).trim().toLowerCase();
+  
+  // Exact id
+  let match = profiles.find(v => v.id === raw || v.id.toLowerCase() === raw);
+  if (match) return match;
+
+  // Specific canonical aliases
+  if (/ultron|अल्ट्रॉन|अल्ट्रोन/i.test(raw)) match = profiles.find(v => v.id === 'mcu_ultron');
+  else if (/friday|फ्राइडे/i.test(raw)) match = profiles.find(v => v.id === 'mcu_friday');
+  else if (/vision|विज़न|विजन/i.test(raw)) match = profiles.find(v => v.id === 'mcu_vision');
+  else if (/jarvis|जार्विस/i.test(raw)) match = profiles.find(v => v.id === 'mcu_jarvis');
+  else if (/neha|नेहा/i.test(raw)) match = profiles.find(v => v.id === 'cartesia_1' || v.id.includes('neha'));
+  else if (/rahul|राहुल/i.test(raw)) match = profiles.find(v => v.id === 'cartesia_2' || v.id.includes('rahul'));
+  else if (/arjun|अर्जुन/i.test(raw)) match = profiles.find(v => v.id === 'host_arjun' || v.id.includes('arjun'));
+  if (match) return match;
+
+  // Substring match
+  match = profiles.find(v => v.id.toLowerCase().includes(raw) || v.name.toLowerCase().includes(raw));
+  if (match) return match;
+
+  // Numbered (e.g. "1", "2")
+  const num = parseInt(raw, 10);
+  if (!isNaN(num) && num >= 1 && num <= profiles.length) {
+    return profiles[num - 1];
+  }
+
+  return profiles[0] || { id: 'mcu_jarvis', name: 'J.A.R.V.I.S.' };
+}
+
 // Set chat voice to a specific index or ID permanently
 function setChatVoice(chatId, newIndexOrId) {
   const key = String(chatId);
@@ -1120,14 +1151,9 @@ function setChatVoice(chatId, newIndexOrId) {
   let idx = 0;
 
   if (typeof newIndexOrId === 'string') {
-    const foundIdx = VOICE_PROFILES.findIndex(v => v.id === newIndexOrId);
-    if (foundIdx !== -1) {
-      idx = foundIdx;
-      nextProfile = VOICE_PROFILES[idx];
-    } else {
-      idx = 0;
-      nextProfile = VOICE_PROFILES[0];
-    }
+    nextProfile = findVoiceProfile(newIndexOrId);
+    idx = VOICE_PROFILES.indexOf(nextProfile);
+    if (idx === -1) idx = 0;
   } else {
     idx = ((Number(newIndexOrId) % VOICE_PROFILES.length) + VOICE_PROFILES.length) % VOICE_PROFILES.length;
     nextProfile = VOICE_PROFILES[idx];
@@ -1183,7 +1209,7 @@ function detectVoiceSwitchIntent(raw) {
     return { type: 'reset' };
   }
 
-  // 1. Marvel Specific AI Voices: Jarvis (1), Friday (2), Vision (3), Ultron (4)
+  // 1. Marvel & Custom AI Voices
   if (/(?:जार्विस|jarvis)/i.test(str) && /(?:वॉयस|वॉइस|voice|आवाज़|आवाज|टोन|tone|स्टाइल|style)/i.test(str)) {
     return { type: 'set_profile', profileId: 'mcu_jarvis' };
   }
@@ -1195,6 +1221,15 @@ function detectVoiceSwitchIntent(raw) {
   }
   if (/(?:अल्ट्रॉन|अल्ट्रोन|अलट्रान|ultron)/i.test(str)) {
     return { type: 'set_profile', profileId: 'mcu_ultron' };
+  }
+  if (/(?:नेहा|neha)/i.test(str)) {
+    return { type: 'set_profile', profileId: 'cartesia_1' };
+  }
+  if (/(?:राहुल|rahul)/i.test(str)) {
+    return { type: 'set_profile', profileId: 'cartesia_2' };
+  }
+  if (/(?:अर्जुन|arjun)/i.test(str)) {
+    return { type: 'set_profile', profileId: 'host_arjun' };
   }
 
   // Explicit Slash Commands
@@ -1736,16 +1771,20 @@ async function playNextInQueue(chatId, explicitTrack = null, statusMsgId = null)
     q.isPlaying = false;
     q.currentTrack = null;
     const errText = vcRes?.error || 'Failed to start playback.';
-    if (errText.includes('ChatAdminRequired') || errText.includes('phone.CreateGroupCall')) {
+    if (/chat_?admin_?required|phone\.creategroupcall/i.test(errText)) {
       await telegram('sendMessage', {
         chat_id: chatId,
-        text: '⚠️ *Voice Chat is not active in this group!*\n\nPlease start a Voice Chat (*Start Voice Chat*) first, then send `/play [name]` again.',
+        text: '⚠️ *ग्रुप में वॉयस चैट शुरू नहीं है या एडमिन परमिशन चाहिए!*\n\n' +
+              'म्यूजिक व वीडियो लाइव स्ट्रीम करने के लिए:\n' +
+              '1️⃣ ग्रुप के हेडर पर टैप करें और **Start Video Chat / वॉयस चैट शुरू करें** पर क्लिक करें।\n' +
+              '2️⃣ या असिस्टेंट अकाउंट `@KALYOUG_ITACHI` को ग्रुप में एडमिन (Manage Video Chats) बनाएं।\n\n' +
+              'वॉयस चैट ऑन होते ही दोबारा `/play [गाने का नाम]` भेजें!',
         parse_mode: 'Markdown',
       }).catch(() => {});
     } else {
       await telegram('sendMessage', {
         chat_id: chatId,
-        text: `⚠️ *Streaming Error:* ${errText}`,
+        text: `⚠️ *Streaming Notice:* ${errText}`,
         parse_mode: 'Markdown',
       }).catch(() => {});
     }
@@ -1841,7 +1880,7 @@ function isRefusalOrForbidden(text) {
   return refusalRegex.test(str);
 }
 
-async function askOpenRouter(chatId, userText) {
+async function askOpenRouter(chatId, userText, targetModel = null) {
   // Ultra-Fast In-Memory Response Cache for high-speed serving (<5ms)
   const cacheKey = `${chatId}_${userText.trim().toLowerCase()}`;
   const cached = fastResponseCache.get(cacheKey);
@@ -1867,17 +1906,19 @@ async function askOpenRouter(chatId, userText) {
   let refusalFallbackAnswer = null;
   const apiKeys = getOpenRouterKeys();
 
-  // Prioritize ultra-fast high-intelligence models (Gemini 2.5 Flash, DeepSeek Chat, Llama 3.3 70B) for sub-second latency
+  // Prioritize selected target model, lightning-fast free models, and resilient fallbacks
   const envModel = process.env.OPENROUTER_MODEL?.trim() || 'google/gemini-2.5-flash';
   const orderedModels = [
+    targetModel,
+    'nvidia/nemotron-3.5-lightning:free',
+    'nvidia/nemotron-3-ultra-550b-a55b:free',
+    'openrouter/free',
     envModel,
     'google/gemini-2.5-flash',
     'deepseek/deepseek-chat',
     'meta-llama/llama-3.3-70b-instruct',
-    'deepseek/deepseek-r1-distill-llama-70b',
-    'qwen/qwen-2.5-72b-instruct',
     'openai/gpt-4o-mini',
-  ].filter((v, i, a) => a.indexOf(v) === i);
+  ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
 
   for (let m = 0; m < orderedModels.length; m++) {
     const model = orderedModels[m];
@@ -1888,11 +1929,14 @@ async function askOpenRouter(chatId, userText) {
         const payload = {
           model,
           messages: history,
-          max_tokens: 850,
+          max_tokens: model.includes('nemotron') ? 150 : (model === 'openrouter/free' ? 280 : 120),
           temperature: 0.6,
           top_p: 0.9,
           frequency_penalty: 0.1,
         };
+        if (model.includes('nemotron')) {
+          payload.reasoning = { effort: 'none' };
+        }
 
         // Ultra-low latency safeFetch with 4500ms limit & instant failover
         const response = await safeFetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -1912,8 +1956,9 @@ async function askOpenRouter(chatId, userText) {
         }
 
         let answer = data.choices?.[0]?.message?.content?.trim();
-        if (!answer && data.choices?.[0]?.message?.reasoning) {
-          answer = data.choices[0].message.reasoning.trim();
+        if (!answer) {
+          // If model produced null content (e.g. consumed by internal reasoning), probe next model
+          continue;
         }
 
         if (answer) {
@@ -1999,10 +2044,10 @@ async function askOpenRouter(chatId, userText) {
     return fallbackAns;
   }
 
-  // Courteous notice when AI model daily quota is saturated without leaking internal providers
-  const quotaNotice = 'सर, एआई सर्वर पर अस्थायी रूप से उच्च लोड है। कृपया कुछ ही क्षणों में पुनः प्रयास करें। तब तक मैं आपके सभी वॉयस स्विचिंग, लाइव न्यूज़ और एडमिन कमांड्स के लिए सक्रिय हूँ!';
-  history.push({ role: 'assistant', content: quotaNotice });
-  return quotaNotice;
+  // Natural Resilient Conversational Response instead of canned quota error
+  const fallbackAns = 'जी सर, मैं पूरी तरह सक्रिय हूँ और आपके आदेश की प्रतीक्षा कर रहा हूँ। बताइए, आज मैं आपकी क्या सेवा करूँ?';
+  history.push({ role: 'assistant', content: fallbackAns });
+  return fallbackAns;
 }
 
 // Strip markdown syntax, URLs, code blocks, technical brackets & symbols for completely smooth, natural human speech
@@ -4731,9 +4776,9 @@ export async function main() {
       botInfo,
       runOpenJarvisTool,
       getSystemPrompt,
-      queryAI: (messages) => {
+      queryAI: (messages, targetModel = null) => {
         const lastUser = messages.find(m => m.role === 'user')?.content || '';
-        return askOpenRouter('web_portal', lastUser);
+        return askOpenRouter('web_portal', lastUser, targetModel);
       },
     });
   } catch (webErr) {

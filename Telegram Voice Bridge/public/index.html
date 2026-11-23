@@ -3,275 +3,983 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JARVIS AI — All-in-One Voice Assistant & Control Hub</title>
+  <title>J.A.R.V.I.S. WEB OS — Neural Core v4.2 VFX</title>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#00e5ff">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23070b14' stroke='%2300e5ff' stroke-width='6'/><circle cx='50' cy='50' r='20' fill='%2300e5ff'/></svg>">
+  <meta name="theme-color" content="#00f3ff">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23030712' stroke='%2300f3ff' stroke-width='6'/><circle cx='50' cy='50' r='20' fill='%2300f3ff'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #070b14;
-      --card-bg: rgba(14, 23, 42, 0.75);
-      --card-border: rgba(0, 229, 255, 0.25);
-      --cyan: #00e5ff;
-      --cyan-glow: 0 0 20px rgba(0, 229, 255, 0.4);
-      --gold: #ffb300;
-      --green: #00e676;
-      --red: #ff3d00;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
+      --bg-deep: #030712;
+      --bg-surface: rgba(10, 18, 36, 0.75);
+      --bg-card: rgba(8, 16, 32, 0.85);
+      --cyan: #00f3ff;
+      --cyan-glow: 0 0 25px rgba(0, 243, 255, 0.45);
+      --cyan-dim: rgba(0, 243, 255, 0.15);
+      --blue-core: #0066ff;
+      --gold: #ffaa00;
+      --gold-glow: 0 0 25px rgba(255, 170, 0, 0.5);
+      --green: #00ff88;
+      --green-glow: 0 0 20px rgba(0, 255, 136, 0.4);
+      --danger: #ff2a55;
+      --danger-glow: 0 0 20px rgba(255, 42, 85, 0.5);
+      --text-main: #e2f1ff;
+      --text-muted: #7a94b8;
+      --border-hud: rgba(0, 243, 255, 0.25);
+      --border-dim: rgba(255, 255, 255, 0.08);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; background-image: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.1) 0%, transparent 70%); }
-    
-    /* Header */
-    header { background: rgba(10, 15, 26, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .logo-box { display: flex; align-items: center; gap: 12px; }
-    .arc-reactor { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--cyan); display: flex; align-items: center; justify-content: center; box-shadow: var(--cyan-glow); animation: pulse 3s infinite; }
-    .arc-core { width: 14px; height: 14px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
-    @keyframes pulse { 0%, 100% { box-shadow: 0 0 15px rgba(0,229,255,0.4); } 50% { box-shadow: 0 0 28px rgba(0,229,255,0.8); } }
-    .logo-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 2px; color: #fff; }
-    .logo-title span { color: var(--cyan); }
-    .status-badges { display: flex; gap: 10px; align-items: center; }
-    .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .badge-online { background: rgba(0, 230, 118, 0.15); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
-    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
-    
-    /* Navigation */
-    nav { display: flex; background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
-    .tab-btn { background: none; border: none; color: var(--text-muted); padding: 14px 20px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; }
-    .tab-btn:hover { color: #fff; }
-    .tab-btn.active { color: var(--cyan); border-bottom-color: var(--cyan); text-shadow: 0 0 10px rgba(0,229,255,0.4); }
-    
-    /* Main Layout */
-    main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Cards */
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; backdrop-filter: blur(10px); margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-    .card-title { font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-    
-    /* Terminal / Chat */
-    .chat-container { display: flex; flex-direction: column; height: 600px; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
-    .msg { max-width: 80%; padding: 12px 18px; border-radius: 14px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
-    .msg-user { align-self: flex-end; background: linear-gradient(135deg, #0088cc, #005580); color: #fff; border-bottom-right-radius: 2px; }
-    .msg-bot { align-self: flex-start; background: rgba(30, 41, 59, 0.8); border: 1px solid var(--card-border); color: #e2e8f0; border-bottom-left-radius: 2px; }
-    .audio-player-box { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
-    .audio-player-box audio { width: 100%; height: 36px; border-radius: 8px; outline: none; }
-    
-    .chat-input-bar { display: flex; gap: 10px; padding: 14px; border-top: 1px solid rgba(255,255,255,0.08); align-items: center; }
-    .chat-input { flex: 1; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; color: #fff; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-    .chat-input:focus { border-color: var(--cyan); box-shadow: var(--cyan-glow); }
-    .btn { background: var(--cyan); color: #000; font-weight: 700; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; }
-    .btn:hover { transform: translateY(-1px); box-shadow: var(--cyan-glow); }
-    .btn-mic { background: rgba(255, 61, 0, 0.2); color: var(--red); border: 1px solid rgba(255, 61, 0, 0.4); }
-    .btn-mic.recording { background: var(--red); color: #fff; animation: pulseRed 1.2s infinite; }
-    @keyframes pulseRed { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-    .btn-gold { background: linear-gradient(135deg, #ffb300, #ff8f00); color: #000; }
-    
-    /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 14px; padding: 18px; text-align: center; }
-    .stat-val { font-size: 2rem; font-weight: 800; color: var(--cyan); margin-bottom: 4px; }
-    .stat-lbl { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--cyan) rgba(5, 12, 28, 0.6);
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    /* Table */
-    .table-container { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-    th { background: rgba(30, 41, 59, 0.6); padding: 12px 16px; color: var(--cyan); font-weight: 700; border-bottom: 1px solid var(--card-border); }
-    td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #cbd5e1; }
-    tr:hover { background: rgba(0, 229, 255, 0.04); }
-    .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: rgba(5, 12, 28, 0.6); }
+    *::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 4px; }
 
-    /* Media Studio */
-    .media-player-box { background: #000; border-radius: 14px; overflow: hidden; margin-top: 16px; position: relative; min-height: 240px; display: flex; align-items: center; justify-content: center; }
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      font-family: 'Rajdhani', -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 102, 255, 0.18) 0%, transparent 65%),
+        radial-gradient(circle at 80% 80%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
+        linear-gradient(rgba(0, 243, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.035) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    /* Ambient Particle Canvas */
+    #bg-particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Scanline Overlay VFX */
+    .scanlines {
+      display: none;
+    }
+
+    /* Top HUD Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(5, 11, 24, 0.88);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transform: translateZ(0);
+      border-bottom: 1px solid var(--border-hud);
+      box-shadow: 0 4px 30px rgba(0, 243, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+
+    .arc-mini {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 16px var(--cyan), inset 0 0 10px var(--cyan);
+      display: grid;
+      place-items: center;
+      position: relative;
+      animation: spinSlow 8s linear infinite;
+    }
+
+    .arc-mini::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 12px #fff;
+    }
+
+    .brand-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, #ffffff 0%, var(--cyan) 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--cyan);
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-badges {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hud-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: rgba(0, 255, 136, 0.08);
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      color: var(--green);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.12);
+      letter-spacing: 0.5px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Navigation Bar */
+    nav {
+      position: sticky;
+      top: 64px;
+      z-index: 90;
+      display: flex;
+      gap: 8px;
+      padding: 10px 24px;
+      background: rgba(7, 14, 30, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.25s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      background: rgba(0, 243, 255, 0.08);
+      border-color: rgba(0, 243, 255, 0.25);
+    }
+
+    .nav-btn.active {
+      color: var(--cyan);
+      background: linear-gradient(180deg, rgba(0, 243, 255, 0.18), rgba(0, 102, 255, 0.08));
+      border: 1px solid var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.25);
+    }
+
+    /* Main Workspace Container */
+    main {
+      position: relative;
+      z-index: 10;
+      max-width: 1280px;
+      margin: 20px auto;
+      padding: 0 16px 40px;
+    }
+
+    .hud-frame {
+      position: relative;
+      background: var(--bg-surface);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transform: translateZ(0);
+      border: 1px solid var(--border-hud);
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), inset 0 0 30px rgba(0, 243, 255, 0.05);
+      overflow: hidden;
+    }
+
+    /* Corner Tech Brackets */
+    .hud-frame::before, .hud-frame::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--cyan);
+      pointer-events: none;
+    }
+    .hud-frame::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .hud-frame::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+    .tab-section { display: none; animation: fadeSlide 0.35s ease; }
+    .tab-section.active { display: block; }
+
+    /* TAB 1: LIVE VOICE VFX CORE */
+    .voice-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 22px;
+      border-radius: 99px;
+      background: rgba(0, 243, 255, 0.08);
+      border: 1px solid var(--border-hud);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--cyan);
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+
+    .mode-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+      transition: 0.3s;
+    }
+
+    /* 3D Holographic Core Canvas Container */
+    .core-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: grid;
+      place-items: center;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    #jarvis-core-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .core-center-btn {
+      position: relative;
+      z-index: 5;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.4), rgba(3, 12, 30, 0.95));
+      color: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 35px rgba(0, 243, 255, 0.5);
+      transition: transform 0.25s, box-shadow 0.3s, background 0.3s;
+    }
+
+    .core-wrapper:hover .core-center-btn {
+      transform: scale(1.08);
+      box-shadow: 0 0 50px var(--cyan);
+    }
+
+    /* Live States */
+    .state-listening .core-center-btn {
+      border-color: var(--cyan);
+      background: radial-gradient(circle, rgba(0, 243, 255, 0.6), rgba(2, 6, 23, 0.95));
+      box-shadow: 0 0 70px rgba(0, 243, 255, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
+      animation: pulseListening 1.8s infinite ease-in-out;
+    }
+    .state-thinking .core-center-btn {
+      border-color: var(--gold);
+      background: radial-gradient(circle, rgba(255, 170, 0, 0.6), rgba(2, 6, 23, 0.95));
+      box-shadow: 0 0 70px rgba(255, 170, 0, 0.9), inset 0 0 30px rgba(255, 255, 255, 0.8);
+      animation: spinRing 2s linear infinite;
+    }
+    .state-speaking .core-center-btn {
+      border-color: var(--green);
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.6), rgba(2, 6, 23, 0.95));
+      box-shadow: 0 0 80px rgba(0, 255, 136, 0.95), inset 0 0 35px rgba(255, 255, 255, 0.9);
+      animation: pulseSpeaking 1.2s infinite ease-in-out;
+    }
+
+    /* Live Audio Spectrum Canvas */
+    #live-wave-canvas {
+      width: 100%;
+      max-width: 560px;
+      height: 64px;
+      margin: 8px 0 16px;
+      border-radius: 10px;
+    }
+
+    .instruction-glass {
+      max-width: 620px;
+      width: 100%;
+      min-height: 80px;
+      padding: 16px 24px;
+      border-radius: 14px;
+      background: rgba(10, 20, 42, 0.7);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      color: #c8ddf7;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin-bottom: 22px;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: all 0.25s ease;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    /* Buttons */
+    .btn-primary-vfx {
+      background: linear-gradient(135deg, #ffaa00 0%, #ff5500 100%);
+      color: #050811;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: var(--gold-glow);
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary-vfx:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 45px rgba(255, 170, 0, 0.8);
+    }
+
+    .btn-primary-vfx.active-stop {
+      background: linear-gradient(135deg, #ff2a55 0%, #b80028 100%);
+      color: #fff;
+      box-shadow: var(--danger-glow);
+    }
+    .btn-primary-vfx.active-stop:hover {
+      box-shadow: 0 0 45px rgba(255, 42, 85, 0.8);
+    }
+
+    .btn-cyan-vfx {
+      background: rgba(0, 243, 255, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 12px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-cyan-vfx:hover {
+      background: var(--cyan);
+      color: #030712;
+      box-shadow: 0 0 25px var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger-vfx {
+      background: rgba(255, 42, 85, 0.15);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    .btn-danger-vfx:hover {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: var(--danger-glow);
+    }
+
+    /* Telemetry Control Bar */
+    .telemetry-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 243, 255, 0.15);
+    }
+
+    .tele-card {
+      background: rgba(4, 10, 24, 0.85);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      padding: 14px 18px;
+      border-radius: 12px;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tele-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--cyan);
+    }
+
+    .tele-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: block;
+      letter-spacing: 1px;
+    }
+
+    .hud-select {
+      width: 100%;
+      background: #071126;
+      color: var(--cyan);
+      border: 1px solid rgba(0, 243, 255, 0.35);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .hud-select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+    }
+
+    /* TAB 2: AI TERMINAL & TEXT */
+    .chat-box {
+      height: 480px;
+      overflow-y: auto;
+      padding: 18px;
+      background: rgba(2, 6, 16, 0.85);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7);
+    }
+
+    .msg {
+      max-width: 82%;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 1rem;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .msg-bot, .msg.jarvis {
+      align-self: flex-start;
+      background: rgba(0, 243, 255, 0.08);
+      border-left: 3px solid var(--cyan);
+      border-top: 1px solid rgba(0, 243, 255, 0.15);
+      border-right: 1px solid rgba(0, 243, 255, 0.15);
+      border-bottom: 1px solid rgba(0, 243, 255, 0.15);
+      color: #e2f1ff;
+    }
+    .msg-user, .msg.user {
+      align-self: flex-end;
+      background: rgba(255, 170, 0, 0.12);
+      border-right: 3px solid var(--gold);
+      border-top: 1px solid rgba(255, 170, 0, 0.2);
+      border-left: 1px solid rgba(255, 170, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 170, 0, 0.2);
+      color: #fff;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hud-input {
+      flex: 1;
+      background: rgba(5, 12, 28, 0.9);
+      border: 1px solid var(--border-hud);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.05rem;
+      outline: none;
+      transition: all 0.25s;
+    }
+    .hud-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(0, 243, 255, 0.25);
+    }
+
+    .btn-mic {
+      background: rgba(0, 243, 255, 0.12);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-mic.recording {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+      animation: pulse 1s infinite;
+      box-shadow: var(--danger-glow);
+    }
+
+    /* Audio Player in Chat */
+    .audio-player-box {
+      margin-top: 10px;
+      padding: 8px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+
+    /* GRID CARDS (Agents, Languages, Music, Stats) */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .agent-card {
+      background: rgba(6, 14, 32, 0.85);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 14px;
+      padding: 18px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .agent-card:hover, .agent-card.selected {
+      border-color: var(--cyan);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 243, 255, 0.22);
+      background: rgba(10, 22, 48, 0.9);
+    }
+    .agent-card.selected::after {
+      content: 'ACTIVE';
+      position: absolute;
+      top: 12px; right: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--cyan);
+      background: rgba(0, 243, 255, 0.15);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--cyan);
+    }
+    .agent-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--gold);
+      background: rgba(255, 170, 0, 0.12);
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* STAT CARDS */
+    .stat-card {
+      background: rgba(5, 12, 28, 0.85);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    }
+    .stat-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+    }
+    .stat-lbl {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* TELEGRAM TABLE */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    th {
+      background: rgba(10, 20, 42, 0.9);
+      padding: 14px 18px;
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-hud);
+      letter-spacing: 1px;
+    }
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+    tr:hover { background: rgba(0, 243, 255, 0.04); }
+
+    /* MEDIA SCRUBBER & PLAYER */
+    .yt-player-card {
+      background: rgba(10, 20, 42, 0.9);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      border-radius: 14px;
+      padding: 22px;
+      margin-top: 18px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+    }
+    .yt-progress-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 18px 0 14px 0;
+    }
+    .yt-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      min-width: 48px;
+      text-align: center;
+    }
+    .yt-rail {
+      flex: 1;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+      transition: height 0.15s ease;
+    }
+    .yt-rail:hover { height: 12px; }
+    .yt-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00f3ff, #ffaa00);
+      border-radius: 6px;
+      width: 0%;
+      position: relative;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.6);
+    }
+    .yt-scrubber {
+      position: absolute;
+      right: -7px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      background: #ffaa00;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #ffaa00;
+    }
+    .yt-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .media-player-box {
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 18px;
+      position: relative;
+      min-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0, 243, 255, 0.25);
+    }
     video, audio { width: 100%; border-radius: 12px; }
-    .media-info { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
 
-    /* YouTube Progress Bar & Controls */
-    .yt-player-card { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 14px; padding: 20px; margin-top: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .yt-progress-container { display: flex; align-items: center; gap: 12px; margin: 16px 0 12px 0; }
-    .yt-time { font-family: monospace; font-size: 0.85rem; color: #94a3b8; min-width: 45px; text-align: center; }
-    .yt-rail { flex: 1; height: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; position: relative; cursor: pointer; transition: height 0.15s ease; }
-    .yt-rail:hover { height: 10px; }
-    .yt-fill { height: 100%; background: #ff0000; border-radius: 4px; width: 0%; position: relative; }
-    .yt-scrubber { position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; background: #ff0000; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 8px rgba(255,0,0,0.8); }
-    .yt-controls { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
-    
-    /* Live Mode Holographic Arc Reactor Orb & Waveform */
-    .live-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 520px; text-align: center; position: relative; padding: 24px 16px; }
-    .live-orb-wrapper { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin: 24px auto; cursor: pointer; }
-    .live-orb { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, #00f0ff 0%, #0077b6 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 50px rgba(0, 240, 255, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.8); position: relative; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 2; }
-    .live-orb-ring { position: absolute; border: 2px dashed rgba(0, 240, 255, 0.4); border-radius: 50%; width: 190px; height: 190px; animation: spinRing 14s linear infinite; }
-    .live-orb-outer { position: absolute; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 50%; width: 230px; height: 230px; animation: pulseOuter 3s ease-in-out infinite; }
+    /* Keyframes */
+    @keyframes spinSlow { 100% { transform: rotate(360deg); } }
     @keyframes spinRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes pulseOuter { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.08); opacity: 0.8; } }
-    
-    .live-orb.state-listening { box-shadow: 0 0 70px rgba(0, 240, 255, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.9); animation: pulseListening 1.8s infinite ease-in-out; }
-    .live-orb.state-thinking { background: radial-gradient(circle, #ffd700 0%, #d97706 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 70px rgba(255, 215, 0, 0.9), inset 0 0 35px rgba(255, 255, 255, 0.9); animation: spinRing 2s linear infinite; }
-    .live-orb.state-speaking { background: radial-gradient(circle, #10b981 0%, #059669 60%, rgba(2, 6, 23, 0.95) 100%); box-shadow: 0 0 80px rgba(16, 185, 129, 0.95), inset 0 0 40px rgba(255, 255, 255, 0.95); animation: pulseSpeaking 1.2s infinite ease-in-out; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
     @keyframes pulseListening { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-    @keyframes pulseSpeaking { 0%, 100% { transform: scale(1.02); } 50% { transform: scale(1.15); } }
-    
-    .live-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 999px; background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.35); color: var(--cyan); font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; letter-spacing: 0.5px; }
-    .live-subtitle-box { max-width: 680px; width: 100%; min-height: 85px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 18px 22px; font-size: 1.05rem; line-height: 1.6; color: #f1f5f9; margin-bottom: 20px; transition: all 0.2s; text-align: left; }
-    .live-wave-canvas { width: 100%; max-width: 500px; height: 50px; margin-bottom: 15px; border-radius: 8px; }
-    .live-controls-row { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    @keyframes pulseSpeaking { 0%, 100% { transform: scale(1.02); } 50% { transform: scale(1.14); } }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* APK Box */
-    .apk-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 20px; }
-    .apk-icon { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, #00e5ff, #0088cc); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin-bottom: 20px; box-shadow: var(--cyan-glow); }
+    /* Responsive Mobile Layout */
+    @media (max-width: 768px) {
+      header { padding: 10px 14px; }
+      .brand-title { font-size: 1.1rem; }
+      .brand-sub { font-size: 0.62rem; }
+      nav { padding: 8px 12px; top: 58px; }
+      .nav-btn { padding: 8px 14px; font-size: 0.9rem; }
+      main { padding: 0 10px 30px; margin: 12px auto; }
+      .hud-frame { padding: 16px; border-radius: 14px; }
+      .core-wrapper { width: 250px; height: 250px; }
+      .core-center-btn { width: 84px; height: 84px; }
+      .btn-primary-vfx { padding: 12px 22px; font-size: 0.88rem; width: 100%; justify-content: center; }
+      .btn-cyan-vfx { padding: 10px 18px; width: 100%; justify-content: center; }
+      .chat-box { height: 380px; padding: 12px; }
+      .msg { max-width: 90%; font-size: 0.95rem; }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Ambient Quantum Particles Canvas -->
+  <canvas id="bg-particles"></canvas>
+  <div class="scanlines"></div>
+
+  <!-- HEADER HUD -->
   <header>
-    <div class="logo-box">
-      <div class="arc-reactor"><div class="arc-core"></div></div>
-      <div class="logo-title">J.A.R.V.I.S. <span>WEB OS</span></div>
+    <div class="brand" onclick="switchTab('live')">
+      <div class="arc-mini"></div>
+      <div>
+        <div class="brand-title">J.A.R.V.I.S. WEB OS</div>
+        <div class="brand-sub">
+          <span>NEURAL CORE // v4.2 ADVANCED CYBER HUD</span>
+        </div>
+      </div>
     </div>
+
     <div class="status-badges">
-      <div class="badge badge-online"><div class="badge-dot"></div> <span id="header-bot-tag">@JarvisNehaVoice2026Bot</span></div>
-      <div class="badge badge-online"><div class="badge-dot"></div> <span id="header-asst-tag">❄️™ (@KALYOUG_ITACHI)</span></div>
+      <div class="hud-pill">
+        <span class="pulse-dot"></span>
+        <span id="header-bot-tag">@JARVISNEHAVOICE2026BOT</span>
+      </div>
+      <div class="hud-pill" style="border-color: rgba(0,243,255,0.4); color: var(--cyan);">
+        <span class="pulse-dot" style="background:var(--cyan);"></span>
+        <span id="header-asst-tag">ADMIN: @KALYOUG_ITACHI</span>
+      </div>
     </div>
   </header>
 
+  <!-- NAVIGATION TABS -->
   <nav>
-    <button class="tab-btn active" onclick="switchTab('live')">⚡ Live Voice Mode</button>
-    <button class="tab-btn" onclick="switchTab('terminal')">💬 AI Terminal & Text</button>
-    <button class="tab-btn" onclick="switchTab('media')">🎵 Music & Movie Studio</button>
-    <button class="tab-btn" onclick="switchTab('dashboard')">📊 Telegram Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('settings')">⚙️ Voice & Language</button>
-    <button class="tab-btn" onclick="switchTab('android')">📱 Android App & APK</button>
+    <button class="nav-btn tab-btn active" onclick="switchTab('live')">⚡ Live Voice Core</button>
+    <button class="nav-btn tab-btn" onclick="switchTab('terminal')">💬 AI Terminal & Text</button>
+    <button class="nav-btn tab-btn" onclick="switchTab('media')">🎵 Music & Movie Studio</button>
+    <button class="nav-btn tab-btn" onclick="switchTab('dashboard')">📊 Telegram Bot HUD</button>
+    <button class="nav-btn tab-btn" onclick="switchTab('settings')">🎙️ AI Agents & Languages</button>
+    <button class="nav-btn tab-btn" onclick="switchTab('android')">📱 Android App & APK</button>
   </nav>
 
+  <!-- MAIN WORKSPACE -->
   <main>
-    <!-- TAB 0: LIVE VOICE MODE (CHATGPT / GEMINI LIVE) -->
-    <section id="tab-live" class="tab-pane active">
-      <div class="card live-container">
-        <div class="live-status-pill" id="live-status-pill">
-          <div class="badge-dot" id="live-status-dot"></div>
-          <span id="live-status-text">🔴 Live Mode Standby - Click Start to Talk</span>
-        </div>
+    <div class="hud-frame" id="main-hud">
 
-        <!-- Holographic Arc Reactor Orb -->
-        <div class="live-orb-wrapper" onclick="toggleLiveMode()" title="क्लिक करके लाइव बातचीत शुरू/बंद करें">
-          <div class="live-orb-outer"></div>
-          <div class="live-orb-ring"></div>
-          <div class="live-orb" id="live-orb">
-            <div style="font-size: 2.4rem;" id="live-orb-icon">🎙️</div>
+      <!-- TAB 1: LIVE VOICE MODE -->
+      <section id="tab-live" class="tab-pane tab-section active">
+        <div class="voice-stage" id="voice-stage">
+          <div class="mode-pill" id="live-status-pill">
+            <span class="mode-indicator" id="live-status-dot"></span>
+            <span id="live-status-text">🔴 Live Mode Standby - Click Start to Talk</span>
           </div>
-        </div>
 
-        <!-- Live Real-Time Audio Waveform Canvas -->
-        <canvas class="live-wave-canvas" id="live-wave-canvas"></canvas>
-
-        <!-- Live Subtitles & Dialogue Bubble -->
-        <div class="live-subtitle-box" id="live-subtitles">
-          <span style="color: var(--text-muted); font-size: 0.95rem;">
-            "Start Live Conversation" पर टैप करें और सीधे बात करें। कोई बटन दबाने की ज़रूरत नहीं—जार्विस लाइव सुनकर तुरंत अपनी प्राकृतिक आवाज़ में जवाब देगा।
-          </span>
-        </div>
-
-        <!-- Live Controls -->
-        <div class="live-controls-row">
-          <button class="btn btn-gold" id="btn-toggle-live" onclick="toggleLiveMode()" style="padding: 14px 28px; font-size: 1.05rem;">
-            ⚡ Start Live Conversation
-          </button>
-          <button class="btn" id="btn-live-mute" onclick="toggleLiveMute()" style="display: none; padding: 14px 20px;">
-            🎙️ Mute
-          </button>
-          <button class="btn" onclick="interruptSpeaking()" id="btn-live-interrupt" style="display: none; padding: 14px 20px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #f87171;">
-            ✋ Stop Jarvis Speaking
-          </button>
-        </div>
-
-        <!-- Live Mode Persona Status & AI Model Control -->
-        <div style="margin-top: 20px; display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;">
-          <div style="font-size: 0.85rem; color: var(--cyan); font-weight: 700;">
-            🎭 Voice: <span id="live-active-persona" style="color: #fff;">J.A.R.V.I.S. (Paul Bettany)</span>
+          <!-- 3D Holographic Core Canvas Reactor -->
+          <div class="core-wrapper" onclick="toggleLiveMode()" title="Click to Engage Neural Voice">
+            <canvas id="jarvis-core-canvas" width="300" height="300"></canvas>
+            <div class="core-center-btn" id="live-orb">
+              <div style="font-size: 2.2rem;" id="live-orb-icon">🎙️</div>
+            </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <label style="font-size: 0.85rem; color: var(--gold); font-weight: 700;">⚡ AI Model:</label>
-            <select id="live-model-select" onchange="updateLiveModel()" style="background: rgba(15,23,42,0.85); color: #fff; border: 1px solid rgba(0,240,255,0.4); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer;">
-              <option value="google/gemini-2.5-flash" selected>⚡ Gemini Ultra-Fast (~200ms)</option>
-              <option value="google/gemini-2.5-flash:online">🌐 Gemini Live (Real-Time Web Search)</option>
-              <option value="openai/gpt-4o-mini">🚀 ChatGPT Fast (GPT-4o Mini)</option>
-              <option value="deepseek/deepseek-chat">🧠 DeepSeek V3</option>
-              <option value="meta-llama/llama-3.3-70b-instruct">🦙 Llama 3.3 70B</option>
-            </select>
+
+          <!-- Real-Time Audio Frequency Spectrum -->
+          <canvas id="live-wave-canvas" width="560" height="64"></canvas>
+
+          <div class="instruction-glass" id="live-subtitles">
+            "Start Live Conversation" पर टैप करें और सीधे बात करें। कोई बटन दबाने की ज़रूरत नहीं—जार्विस लाइव सुनकर तुरंत जवाब देगा।
           </div>
-          <div class="live-status-pill" id="live-latency-pill" style="margin-bottom: 0; padding: 5px 14px; font-size: 0.8rem; background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.4); color: #34d399;">
-            ⚡ Supercomputer Speed Active (&lt;400ms)
+
+          <div class="cta-group">
+            <button class="btn-primary-vfx" id="btn-toggle-live" onclick="toggleLiveMode()">⚡ START LIVE CONVERSATION</button>
+            <button class="btn-cyan-vfx" id="btn-live-mute" onclick="toggleLiveMute()" style="display: none;">🎙️ Mute</button>
+            <button class="btn-danger-vfx" id="btn-live-interrupt" onclick="interruptSpeaking()" style="display: none;">⚡ Interrupt Speaking</button>
+            <button class="btn-cyan-vfx" onclick="switchTab('settings')">🎛️ Switch AI Voice / Language</button>
           </div>
-          <button class="btn btn-sm" onclick="switchTab('settings')" style="font-size: 0.8rem;">Change Voice / Language ⚙️</button>
-        </div>
 
-        <div style="margin-top: 16px; max-width: 600px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
-          💡 <strong>ChatGPT / Gemini Live Experience:</strong> हैंड्स-फ्री नेचुरल बातचीत। आप सामान्य रूप से बोलते रहें, जार्विस बिना किसी रुकावट के लाइव सुनेगा और रिप्लाई करेगा। यदि आप बोलते हैं जब जार्विस बोल रहा हो, तो जार्विस तुरंत रुककर आपको सुनेगा (Barge-in Support)।
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 1: AI TERMINAL -->
-    <section id="tab-terminal" class="tab-pane">
-      <div class="card chat-container">
-        <!-- Live Mode Shortcut Banner -->
-        <div style="background: rgba(0,240,255,0.08); border: 1px solid rgba(0,240,255,0.3); border-radius: 10px; padding: 12px 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <span style="font-size: 0.9rem; color: #cbd5e1;">⚡ <strong>हैंड्स-फ्री लाइव मोड:</strong> बिना टाइप किए सीधे बात करने के लिए लाइव मोड का उपयोग करें।</span>
-          <button class="btn btn-gold btn-sm" onclick="switchTab('live'); startLiveMode();" style="padding: 6px 14px;">🔴 लाइव मोड शुरू करें</button>
-        </div>
-
-        <div class="card-title">
-          <span>💬 J.A.R.V.I.S. Interactive AI Terminal</span>
-          <span style="font-size: 0.85rem; color: var(--cyan);" id="active-profile-indicator">Persona: J.A.R.V.I.S. | Lang: हिंदी</span>
-        </div>
-        <div class="chat-messages" id="chat-stream">
-          <div class="msg msg-bot">
-            नमस्ते सर! मैं जार्विस हूँ — आपका ऑल-इन-वन स्मार्ट AI, वॉइस और म्यूजिक असिस्टेंट। आप मुझसे लिखकर या सीधे माइक पर बोलकर बातचीत कर सकते हैं।
-          </div>
-        </div>
-        <div class="chat-input-bar">
-          <button class="btn btn-mic" id="mic-btn" onclick="toggleVoiceRecording()" title="माइक से बोलें">🎙️ बोलें</button>
-          <input type="text" class="chat-input" id="chat-text" placeholder="जार्विस से कुछ भी पूछें या कमांड दें..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-          <button class="btn" onclick="sendChatMessage()">भेजें 🚀</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: MEDIA STUDIO -->
-    <section id="tab-media" class="tab-pane">
-      <div class="card">
-        <div class="card-title">🎵 Music, Movie & Voice Chat Live Streaming Studio</div>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
-          कोई भी गाना, वीडियो या मूवी खोजें। आप सीधे ब्राउज़र में चला सकते हैं या एक क्लिक से टेलीग्राम वॉइस चैट (VC) में स्ट्रीम कर सकते हैं।
-        </p>
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-          <input type="text" class="chat-input" id="media-search-input" placeholder="गाने, कलाकार या मूवी का नाम लिखें (उदा. Kesariya, Ranjhana, Pushpa)..." onkeydown="if(event.key==='Enter') searchMedia()">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--cyan); cursor: pointer;">
-            <input type="checkbox" id="media-is-video"> 🎬 Full HD Video
-          </label>
-          <button class="btn btn-gold" onclick="searchMedia()">सर्च करें 🔍</button>
-        </div>
-
-        <div id="media-result-box" style="display: none;">
-          <div class="yt-player-card">
-            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-              <img id="media-thumb" src="" alt="Thumbnail" style="width: 140px; height: 90px; object-fit: cover; border-radius: 8px;">
-              <div style="flex: 1;">
-                <h3 id="media-title" style="color: #fff; font-size: 1.15rem; margin-bottom: 4px;">Track Title</h3>
-                <p id="media-artist" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2px;">Artist Name</p>
-                <p id="media-duration" style="color: var(--gold); font-size: 0.85rem; font-weight: 700;">Duration: 03:45</p>
-              </div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn" onclick="playInBrowser()">▶️ Play in Browser</button>
-                <button class="btn btn-gold" onclick="streamToTelegramVC()">📡 Stream to Telegram VC</button>
+          <!-- Telemetry & Model Controls -->
+          <div class="telemetry-grid">
+            <div class="tele-card">
+              <span class="tele-label">Active Voice Persona</span>
+              <div style="color: var(--cyan); font-weight: 700; font-size: 1.05rem;" id="live-active-persona">
+                Cartesia 1: Neha (Natural Hindi/English)
               </div>
             </div>
 
-            <!-- YouTube-Style Live Interactive Progress Bar -->
+            <div class="tele-card">
+              <span class="tele-label">Neural Engine / Model</span>
+              <select class="hud-select" id="live-model-select" onchange="updateLiveModel()">
+                <option value="google/gemini-2.5-flash">Gemini Ultra-Fast (200ms)</option>
+                <option value="google/gemini-2.5-flash:online">Gemini Live (Real-Time Web Search)</option>
+                <option value="deepseek/deepseek-chat">DeepSeek V3 (Reasoning Core)</option>
+                <option value="openai/gpt-4o-mini">GPT Fast (GPT-4o Mini)</option>
+                <option value="meta-llama/llama-3.3-70b-instruct">Llama 3.3 70B (Open Neural)</option>
+              </select>
+            </div>
+
+            <div class="tele-card">
+              <span class="tele-label">Language Matrix</span>
+              <select class="hud-select" id="live-lang-select" onchange="updateLiveLanguage()">
+                <option value="hi">Hindi (हिंदी / Hinglish)</option>
+                <option value="en">English (UK / US)</option>
+                <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+              </select>
+            </div>
+
+            <div class="tele-card">
+              <span class="tele-label">Core Latency & Sync</span>
+              <div style="color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;" id="live-latency-pill">
+                ⚡ 380ms (gemini-2.5-flash:live)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: AI TERMINAL & TEXT -->
+      <section id="tab-terminal" class="tab-pane tab-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <h2 style="font-family:'Orbitron'; color:var(--cyan); font-size: 1.15rem; letter-spacing: 1px;">// NEURAL TEXT & COMMAND TERMINAL</h2>
+          <span style="font-family:'JetBrains Mono'; font-size: 0.85rem; color: var(--gold);" id="active-profile-indicator">
+            Persona: Neha | Lang: Hindi
+          </span>
+        </div>
+        <div class="chat-box" id="chat-stream">
+          <div class="msg-bot msg">
+            <strong>J.A.R.V.I.S.:</strong> All neural subsystems online, Sir. Aap text ya voice command de sakte hain—music play karna ho, AI agent switch karna ho, ya koi query ho.
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <button class="btn-mic" id="mic-btn" onclick="toggleVoiceRecording()" title="माइक से बोलें">🎙️ बोलें</button>
+          <input type="text" id="chat-text" class="hud-input" placeholder="जार्विस से कुछ भी पूछें या कमांड दें (उदा: Play Sidhu Moosewala)..." onkeypress="if(event.key==='Enter') sendChatMessage()" />
+          <button class="btn-primary-vfx" style="padding: 12px 24px;" onclick="sendChatMessage()">TRANSMIT</button>
+        </div>
+      </section>
+
+      <!-- TAB 3: MUSIC & MOVIE STUDIO -->
+      <section id="tab-media" class="tab-pane tab-section">
+        <h2 style="font-family:'Orbitron'; color:var(--cyan); font-size: 1.15rem; letter-spacing: 1px; margin-bottom: 14px;">// AUDIO-VISUAL & MUSIC STREAMING ENGINE</h2>
+        
+        <div style="background: rgba(5, 12, 28, 0.8); border: 1px solid var(--border-hud); border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="text" class="hud-input" id="media-search-input" placeholder="गाने, कलाकार या मूवी का नाम (उदा: Kesariya, Animal, Sidhu Moosewala)..." onkeypress="if(event.key==='Enter') searchMedia()" />
+            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; color: #fff; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="media-is-video" style="accent-color: var(--cyan); width: 16px; height: 16px;"> 🎬 Full HD Video
+            </label>
+            <button class="btn-primary-vfx" onclick="searchMedia()" style="padding: 12px 24px;">🔍 खोजें (Search)</button>
+          </div>
+        </div>
+
+        <!-- Result Box -->
+        <div id="media-result-box" style="display: none; background: rgba(8, 18, 38, 0.9); border: 1px solid var(--cyan); border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0, 243, 255, 0.15);">
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <img id="media-thumb" src="" alt="Thumbnail" style="width: 140px; height: 90px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border-hud);">
+            <div style="flex: 1;">
+              <h3 id="media-title" style="color: #fff; font-size: 1.15rem; margin-bottom: 4px; font-family: 'Orbitron', sans-serif;">Track Title</h3>
+              <p id="media-artist" style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 4px;">Artist / Channel</p>
+              <p id="media-duration" style="color: var(--gold); font-size: 0.88rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">Duration: 00:00</p>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
+            <button class="btn-primary-vfx" onclick="playInBrowser()" style="padding: 10px 20px;">▶️ ब्राउज़र में चलाएं</button>
+            <button class="btn-cyan-vfx" onclick="streamToTelegramVC()" style="padding: 10px 20px;">📡 Telegram VC में स्ट्रीम करें</button>
+          </div>
+
+          <!-- YouTube Scrubber Bar -->
+          <div class="yt-player-card" id="yt-player-card">
+            <span style="font-family:'JetBrains Mono'; font-size: 0.8rem; color: var(--cyan); text-transform: uppercase;">// LIVE MEDIA SCRUBBER</span>
             <div class="yt-progress-container" id="yt-progress-bar-wrap">
               <span class="yt-time" id="yt-curr-time">00:00</span>
               <div class="yt-rail" id="yt-rail" onclick="seekByClick(event)">
@@ -282,52 +990,63 @@
               <span class="yt-time" id="yt-tot-time">03:45</span>
             </div>
 
-            <!-- 10-Second Seek & Playback Controls -->
             <div class="yt-controls">
-              <button class="btn btn-sm" onclick="seekRelative(-10)" title="Seek -10s">⏪ -10s</button>
-              <button class="btn btn-sm btn-gold" id="btn-toggle-play" onclick="toggleBrowserPlayback()">⏸️ Pause</button>
-              <button class="btn btn-sm" onclick="seekRelative(10)" title="Seek +10s">⏩ +10s</button>
-              <button class="btn btn-sm" onclick="stopAllPlayback()" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #f87171;">⏹️ Stop</button>
-            </div>
-            
-            <div class="media-player-box" id="browser-player-container" style="display: none; margin-top: 16px;">
-              <audio id="browser-audio-player" style="display: none;"></audio>
-              <video id="browser-video-player" style="display: none; max-height: 400px;"></video>
+              <button class="btn-cyan-vfx" style="padding: 8px 16px;" onclick="seekRelative(-10)">⏪ -10s</button>
+              <button class="btn-primary-vfx" style="padding: 8px 22px;" id="btn-toggle-play" onclick="toggleBrowserPlayback()">⏸️ Pause</button>
+              <button class="btn-cyan-vfx" style="padding: 8px 16px;" onclick="seekRelative(10)">⏩ +10s</button>
+              <button class="btn-danger-vfx" style="padding: 8px 16px;" onclick="stopAllPlayback()">⏹️ Stop All</button>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- TAB 3: TELEGRAM DASHBOARD -->
-    <section id="tab-dashboard" class="tab-pane">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-val" id="stat-chats">0</div><div class="stat-lbl">कुल कनेक्टेड चैट</div></div>
-        <div class="stat-card"><div class="stat-val" id="stat-groups">0</div><div class="stat-lbl">टेलीग्राम ग्रुप्स</div></div>
-        <div class="stat-card"><div class="stat-val" id="stat-users">0</div><div class="stat-lbl">प्राइवेट यूज़र्स</div></div>
-        <div class="stat-card"><div class="stat-val" id="stat-uptime">0m</div><div class="stat-lbl">लाइव अपटाइम</div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">
-          <span>📢 टेलीग्राम ब्रॉडकास्ट (सभी ग्रुप्स व सदस्यों को संदेश भेजें)</span>
+          <!-- Browser Audio & Video Player -->
+          <div class="media-player-box" id="browser-player-container" style="display: none;">
+            <audio id="browser-audio-player" style="display: none;"></audio>
+            <video id="browser-video-player" style="display: none; max-height: 400px;" controls></video>
+          </div>
         </div>
-        <div style="display: flex; gap: 10px;">
-          <input type="text" class="chat-input" id="broadcast-input" placeholder="ब्रॉडकास्ट संदेश टाइप करें...">
-          <button class="btn btn-gold" onclick="sendBroadcast()">📢 ब्रॉडकास्ट भेजें</button>
-        </div>
-      </div>
+      </section>
 
-      <div class="card">
-        <div class="card-title">👥 कनेक्टेड ग्रुप्स, चैनल्स व यूज़र्स तालिका</div>
+      <!-- TAB 4: TELEGRAM DASHBOARD -->
+      <section id="tab-dashboard" class="tab-pane tab-section">
+        <h2 style="font-family:'Orbitron'; color:var(--cyan); font-size: 1.15rem; letter-spacing: 1px;">// TELEGRAM BOT COMMAND CENTER</h2>
+        
+        <div class="cards-grid">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-chats">0</div>
+            <div class="stat-lbl">कुल कनेक्टेड चैट्स</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-groups">0</div>
+            <div class="stat-lbl">टेलीग्राम ग्रुप्स</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-users">0</div>
+            <div class="stat-lbl">प्राइवेट यूज़र्स</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-uptime">0m</div>
+            <div class="stat-lbl">लाइव अपटाइम</div>
+          </div>
+        </div>
+
+        <!-- Broadcast Message -->
+        <div style="background: rgba(5, 12, 28, 0.85); border: 1px solid var(--border-hud); border-radius: 14px; padding: 20px; margin-top: 20px;">
+          <h3 style="color: #fff; font-family: 'Orbitron'; font-size: 1rem; margin-bottom: 10px;">📢 All-Chat Broadcast System</h3>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" class="hud-input" id="broadcast-input" placeholder="ब्रॉडकास्ट संदेश टाइप करें (सभी ग्रुप्स में प्रसारित होगा)..." onkeypress="if(event.key==='Enter') sendBroadcast()" />
+            <button class="btn-primary-vfx" onclick="sendBroadcast()" style="padding: 12px 24px;">📢 ब्रॉडकास्ट भेजें</button>
+          </div>
+        </div>
+
+        <!-- Connected Chats Table -->
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>चैट ID</th>
-                <th>नाम / शीर्षक</th>
+                <th>शीर्षक / यूज़रनेम</th>
                 <th>प्रकार</th>
-                <th>सक्रिय भाषा</th>
+                <th>भाषा</th>
                 <th>सक्रिय वॉयस</th>
                 <th>कार्रवाई</th>
               </tr>
@@ -337,113 +1056,221 @@
             </tbody>
           </table>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- TAB 4: SETTINGS -->
-    <section id="tab-settings" class="tab-pane">
-      <div class="card">
-        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <span>⚙️ AI वॉयस मॉडल व भाषा प्राथमिकताएं</span>
-          <span style="font-size: 0.85rem; color: var(--gold);" id="voices-badge">🎭 43 AI वॉयस मॉडल्स | 🌐 27 भाषाएँ सक्रिय</span>
+      <!-- TAB 5: AI AGENTS & LANGUAGES -->
+      <section id="tab-settings" class="tab-pane tab-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+          <h2 style="font-family:'Orbitron'; color:var(--cyan); font-size: 1.15rem; letter-spacing: 1px;">// MULTI-AGENT VOICE & LANGUAGE MATRIX</h2>
+          <span class="agent-tag" id="voices-badge">🎭 43 AI वॉयस मॉडल्स | 🌐 27 भाषाएं</span>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-          <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--cyan);">🎭 AI वॉयस पर्सोना चुनें (सभी 43 मॉडल्स):</label>
-            <select class="chat-input" id="voice-select" onchange="updateSelectedVoice()" style="width: 100%; margin-bottom: 10px;">
-              <option value="mcu_jarvis">लोड हो रहा है...</option>
-            </select>
-            <button class="btn btn-sm btn-gold" id="btn-test-voice" onclick="testSelectedVoice()" style="width: 100%; padding: 8px 14px;">🔊 आवाज़ सुनें (Test Voice)</button>
+        <p style="color:var(--text-muted); font-size: 0.95rem;">Kisi bhi AI Agent card par click karke turant voice aur personality switch karein:</p>
+
+        <!-- Quick Agent Persona Selection Cards -->
+        <div class="cards-grid">
+          <div class="agent-card selected" onclick="selectAgentCard(this, 'cartesia_1', 'Neha — Virtual Assistant (Hindi/English)')">
+            <span class="agent-tag">DEFAULT // CARTESIA-1</span>
+            <h3 style="margin:10px 0 6px; color:#fff;">Neha — Virtual Assistant</h3>
+            <p style="color:var(--text-muted); font-size:0.92rem;">स्पष्ट, मधुर और सहज मानवीय आवाज़। Hindi, Hinglish aur English ke liye best.</p>
           </div>
-          <div>
-            <label style="display: block; font-weight: 700; margin-bottom: 8px; color: var(--gold);">🌐 सक्रिय भाषा (कुल 27 भाषाएँ):</label>
-            <select class="chat-input" id="lang-select" onchange="updateSelectedLanguage()" style="width: 100%; margin-bottom: 10px;">
-              <option value="hi">लोड हो रहा है...</option>
-            </select>
-            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
-              💡 किसी भी वॉयस पर्सोना के साथ कोई भी भाषा चुनें; जार्विस उसी पर्सोना में भाषा बोलेगा।
+
+          <div class="agent-card" onclick="selectAgentCard(this, 'mcu_jarvis', 'J.A.R.V.I.S. Prime (British Tactical AI)')">
+            <span class="agent-tag">STARK CORE // EN-UK</span>
+            <h3 style="margin:10px 0 6px; color:#fff;">J.A.R.V.I.S. Prime</h3>
+            <p style="color:var(--text-muted); font-size:0.92rem;">Calm, hyper-intelligent British tactical assistant for coding, system control & analytics.</p>
+          </div>
+
+          <div class="agent-card" onclick="selectAgentCard(this, 'mcu_friday', 'F.R.I.D.A.Y. (Tactical Assistant)')">
+            <span class="agent-tag">TACTICAL // FEMALE</span>
+            <h3 style="margin:10px 0 6px; color:#fff;">F.R.I.D.A.Y. Assistant</h3>
+            <p style="color:var(--text-muted); font-size:0.92rem;">त्वरित, आत्मविश्वासी और टैक्टिकल महिला एआई — आयरन मैन की कॉम्बैट असिस्टेंट शैली।</p>
+          </div>
+
+          <div class="agent-card" onclick="selectAgentCard(this, 'mcu_ultron', 'Ultron (Deep Baritone)')">
+            <span class="agent-tag">STUDIO // BARITONE</span>
+            <h3 style="margin:10px 0 6px; color:#fff;">Ultron Mode</h3>
+            <p style="color:var(--text-muted); font-size:0.92rem;">गंभीर, शक्तिशाली रोबोटिक बारिटोन — जेम्स स्पेडर की प्रतिष्ठित शैली।</p>
+          </div>
+        </div>
+
+        <!-- Detailed Voice & Language Selectors -->
+        <div style="background: rgba(5, 12, 28, 0.85); border: 1px solid var(--border-hud); border-radius: 14px; padding: 22px; margin-top: 22px;">
+          <h3 style="color: #fff; font-family: 'Orbitron'; font-size: 1rem; margin-bottom: 16px;">🎛️ Detailed Voice & Language Config</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div>
+              <label class="tele-label">Select AI Voice Model (43 Subsystems):</label>
+              <select class="hud-select" id="voice-select" onchange="updateSelectedVoice()"></select>
+              <button class="btn-cyan-vfx" id="btn-test-voice" onclick="testSelectedVoice()" style="width: 100%; margin-top: 10px; justify-content: center;">
+                🔊 आवाज़ सुनें (Test Voice)
+              </button>
+            </div>
+            <div>
+              <label class="tele-label">Select Response Language (27 Locales):</label>
+              <select class="hud-select" id="lang-select" onchange="updateSelectedLanguage()"></select>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- TAB 5: ANDROID APP & APK -->
-    <section id="tab-android" class="tab-pane">
-      <div class="card apk-hero">
-        <div class="apk-icon">🤖</div>
-        <h2 style="font-size: 1.8rem; margin-bottom: 8px; color: #fff;">JARVIS Android App (v1.0.0)</h2>
-        <p style="color: var(--text-muted); max-width: 600px; margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5;">
-          जार्विस का पूर्ण एंड्रॉइड ऐप APK डाउनलोड करें या सीधे अपने मोबाइल ब्राउज़र से 1-क्लिक में होमस्क्रीन पर इंस्टॉल करें। वॉइस कमांड्स, लाइव म्यूजिक स्ट्रीमिंग, और टेलीग्राम ग्रुप/यूजर मैनेजमेंट सीधे अपने मोबाइल से इस्तेमाल करें।
-        </p>
-
-        <!-- Dynamic Mobile Access Box -->
-        <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 12px; padding: 18px 24px; margin-bottom: 28px; max-width: 540px; text-align: center;">
-          <div style="font-size: 0.85rem; color: var(--cyan); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px;">
-            📱 मोबाइल पर खोलने के लिए Wi-Fi लिंक
-          </div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px;">
-            <code id="mobile-url" style="font-family: monospace; font-size: 1.15rem; color: #ffd700; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.3);">http://192.168.31.126:3000</code>
-            <button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('mobile-url').textContent); alert('Link copied to clipboard!');" style="padding: 8px 14px; font-size: 0.85rem;">📋 Copy</button>
-          </div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
-            अपने Android फ़ोन में Chrome खोलें और इस लिंक पर जाएं, फिर नीचे दिए गए बटन से तुरंत डाउनलोड या इंस्टॉल करें।
+      <!-- TAB 6: ANDROID APP & APK -->
+      <section id="tab-android" class="tab-pane tab-section">
+        <h2 style="font-family:'Orbitron'; color:var(--cyan); font-size: 1.15rem; letter-spacing: 1px;">// J.A.R.V.I.S. MOBILE BRIDGE (ANDROID APK)</h2>
+        
+        <div class="instruction-glass" style="max-width:100%; margin-top:16px;">
+          <h3 style="font-family:'Orbitron'; color: #fff; margin-bottom: 8px;">📱 Native Mobile Experience & Floating Orb</h3>
+          <p style="color: #cbd5e1; margin-bottom: 14px;">
+            Apne Android phone par full-screen Jarvis chalane ke liye direct install karein. Background voice assistant, camera analysis, aur auto-sync features fully supported hain.
           </p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn-primary-vfx" onclick="installPWA()">📲 मोबाइल में इंस्टॉल करें (PWA)</button>
+            <a href="/downloads/jarvis-v4.2.apk" download style="text-decoration:none;">
+              <button class="btn-cyan-vfx">⬇️ Download J.A.R.V.I.S. OS v4.2 APK</button>
+            </a>
+          </div>
         </div>
 
-        <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 24px;">
-          <a href="/downloads/Jarvis_Assistant_v1.0.apk" class="btn btn-gold" download style="text-decoration: none; padding: 14px 28px; font-size: 1.05rem;">
-            📥 डाउनलोड करें Android APK (v1.0)
-          </a>
-          <button class="btn" onclick="installPWA()" style="padding: 14px 28px; font-size: 1.05rem;">
-            📲 मोबाइल होमस्क्रीन पर इंस्टॉल करें (PWA WebAPK)
-          </button>
+        <div style="background: rgba(5, 12, 28, 0.85); border: 1px solid var(--border-hud); border-radius: 14px; padding: 20px; margin-top: 18px;">
+          <h4 style="color: var(--cyan); font-family: 'Orbitron'; margin-bottom: 8px;">🌐 Local & Cloud Access URL:</h4>
+          <code id="mobile-url" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: var(--gold); background: rgba(0,0,0,0.5); padding: 8px 14px; border-radius: 6px; display: inline-block; border: 1px solid rgba(255,170,0,0.3);">
+            http://localhost:3000
+          </code>
         </div>
+      </section>
 
-        <!-- Android Features Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; width: 100%; max-width: 650px; text-align: left; margin-top: 10px;">
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
-            <div style="color: var(--cyan); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🎙️ लाइव माइक वॉइस नोट्स</div>
-            <div style="color: var(--text-muted); font-size: 0.8rem;">मोबाइल माइक से सीधे बात करें और तुरंत जार्विस से वॉइस उत्तर सुनें।</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
-            <div style="color: var(--gold); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🎵 VC और मीडिया प्लेयर</div>
-            <div style="color: var(--text-muted); font-size: 0.8rem;">YouTube/JioSaavn गाने सर्च करें और एक क्लिक में Telegram VC में बजाएं।</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 12px 16px;">
-            <div style="color: var(--success); font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">👥 पूर्ण टेलीग्राम कंट्रोल</div>
-            <div style="color: var(--text-muted); font-size: 0.8rem;">सारे ग्रुप, चैनल, यूज़र्स देखें और ब्रॉडकास्ट संदेश मोबाइल से भेजें।</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
 
   <script>
-    let currentVoiceId = 'mcu_jarvis';
-    let currentLanguageCode = 'hi';
-    let currentAiModel = 'google/gemini-2.5-flash';
+    // ==========================================
+    // 1. SCI-FI SOUND FX & UFX SYNTHESIS
+    // ==========================================
+    function playUFX(type = 'blip') {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const now = ctx.currentTime;
+        if (type === 'blip') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        } else if (type === 'engage') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(940, now + 0.22);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'disengage') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(740, now);
+          osc.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        }
+      } catch (e) {}
+    }
+
+    // ==========================================
+    // 2. SPEECH RECOGNITION LOCALES MAPPING
+    // ==========================================
+    const SPEECH_LOCALES = {
+      hi: 'hi-IN', en: 'en-US', pa: 'pa-IN', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN',
+      mr: 'mr-IN', gu: 'gu-IN', kn: 'kn-IN', ml: 'ml-IN', ur: 'ur-IN', es: 'es-ES',
+      fr: 'fr-FR', de: 'de-DE', ja: 'ja-JP', ru: 'ru-RU', ar: 'ar-SA', zh: 'zh-CN',
+      it: 'it-IT', pt: 'pt-BR', ko: 'ko-KR', tr: 'tr-TR', vi: 'vi-VN', th: 'th-TH',
+      id: 'id-ID', nl: 'nl-NL', pl: 'pl-PL'
+    };
+
+    function getSpeechLocale(code) {
+      return SPEECH_LOCALES[code] || `${code}-IN`;
+    }
+
+    // Persistent state
+    let currentVoiceId = localStorage.getItem('jarvis_voice_id') || 'cartesia_1';
+    if (currentVoiceId === 'cartesia_neha') currentVoiceId = 'cartesia_1';
+    let currentLanguageCode = localStorage.getItem('jarvis_lang_code') || 'hi';
+    if (currentLanguageCode === 'italian') currentLanguageCode = 'it';
+    if (currentLanguageCode === 'hindi') currentLanguageCode = 'hi';
+    if (currentLanguageCode === 'punjabi') currentLanguageCode = 'pa';
+    if (currentLanguageCode === 'english') currentLanguageCode = 'en';
+
+    function warmUpAudio() {
+      try {
+        const dummy = new Audio();
+        dummy.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        dummy.play().catch(() => {});
+      } catch(e) {}
+    }
+    let currentAiModel = localStorage.getItem('jarvis_ai_model') || 'google/gemini-2.5-flash';
     let currentMediaItem = null;
+    let activePlayer = null;
+    let isVcStreaming = false;
     let deferredPrompt = null;
 
     function updateLiveModel() {
       const sel = document.getElementById('live-model-select');
       if (sel) {
         currentAiModel = sel.value;
+        localStorage.setItem('jarvis_ai_model', currentAiModel);
         const latPill = document.getElementById('live-latency-pill');
         if (latPill) {
           if (currentAiModel.includes(':online')) {
             latPill.innerText = '🌐 Real-Time Web Search Active';
-            latPill.style.color = '#38bdf8';
+            latPill.style.color = '#00f3ff';
           } else {
-            latPill.innerText = '⚡ Supercomputer Speed Active (<400ms)';
-            latPill.style.color = '#34d399';
+            const shortName = currentAiModel.split('/')[1] || currentAiModel;
+            latPill.innerText = `⚡ ${shortName} Active (<380ms)`;
+            latPill.style.color = '#00ff88';
           }
         }
       }
     }
 
-    // Register Service Worker for PWA
+    function updateLiveVoice() {
+      const liveVSel = document.getElementById('live-voice-select');
+      if (liveVSel) {
+        currentVoiceId = liveVSel.value;
+        localStorage.setItem('jarvis_voice_id', currentVoiceId);
+        const setVSel = document.getElementById('voice-select');
+        if (setVSel) setVSel.value = currentVoiceId;
+        updateIndicator();
+      }
+    }
+
+    function updateLiveLanguage() {
+      const liveLSel = document.getElementById('live-lang-select');
+      if (liveLSel) {
+        currentLanguageCode = liveLSel.value;
+        localStorage.setItem('jarvis_lang_code', currentLanguageCode);
+        const setLSel = document.getElementById('lang-select');
+        if (setLSel) setLSel.value = currentLanguageCode;
+
+        if (liveRecognition) {
+          liveRecognition.lang = getSpeechLocale(currentLanguageCode);
+          if (isLiveModeActive && !isLiveMuted && liveState === 'listening') {
+            try {
+              liveRecognition.stop();
+              setTimeout(() => { if (isLiveModeActive) liveRecognition.start(); }, 150);
+            } catch {}
+          }
+        }
+        updateIndicator();
+      }
+    }
+
+    // Service Worker for PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.warn);
     }
@@ -464,19 +1291,44 @@
       }
     }
 
+    let activeTabId = 'live';
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => {
+      playUFX('blip');
+      activeTabId = tabId;
+      document.querySelectorAll('.tab-btn, .nav-btn').forEach(b => {
         b.classList.remove('active');
         if (b.getAttribute('onclick')?.includes(`'${tabId}'`)) b.classList.add('active');
       });
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-pane, .tab-section').forEach(p => p.classList.remove('active'));
       const targetPane = document.getElementById(`tab-${tabId}`);
       if (targetPane) targetPane.classList.add('active');
+      if (tabId === 'live') {
+        requestAnimationFrame(drawCore);
+        requestAnimationFrame(drawWaveform);
+      }
       if (tabId === 'dashboard') loadDashboardData();
     }
 
+    function selectAgentCard(card, voiceId, displayName) {
+      playUFX('blip');
+      document.querySelectorAll('#tab-settings .agent-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      
+      currentVoiceId = voiceId;
+      localStorage.setItem('jarvis_voice_id', currentVoiceId);
+      
+      const vSelect = document.getElementById('voice-select');
+      if (vSelect) vSelect.value = voiceId;
+      const liveVSel = document.getElementById('live-voice-select');
+      if (liveVSel) liveVSel.value = voiceId;
+
+      updateIndicator();
+      const personaDisplay = document.getElementById('live-active-persona');
+      if (personaDisplay) personaDisplay.innerText = displayName;
+    }
+
     // ==========================================
-    // CHATGPT / GEMINI LIVE VOICE ENGINE
+    // 3. LIVE VOICE ENGINE & CONTINUOUS RECOGNITION
     // ==========================================
     let isLiveModeActive = false;
     let isLiveMuted = false;
@@ -488,127 +1340,70 @@
     let liveCurrentAudio = null;
     let liveSilenceTimer = null;
     let liveAccumulatedText = '';
-    let animFrameId = null;
 
     function setLiveState(state) {
       liveState = state;
+      const stage = document.getElementById('voice-stage');
       const orb = document.getElementById('live-orb');
       const icon = document.getElementById('live-orb-icon');
       const statusPill = document.getElementById('live-status-pill');
+      const statusDot = document.getElementById('live-status-dot');
       const statusText = document.getElementById('live-status-text');
       const btnToggle = document.getElementById('btn-toggle-live');
       const btnMute = document.getElementById('btn-live-mute');
       const btnInterrupt = document.getElementById('btn-live-interrupt');
 
-      if (!orb) return;
-
-      orb.classList.remove('state-listening', 'state-thinking', 'state-speaking');
+      if (stage) {
+        stage.classList.remove('state-idle', 'state-listening', 'state-thinking', 'state-speaking');
+        stage.classList.add(`state-${state}`);
+      }
 
       if (state === 'idle') {
-        icon.innerText = '🎙️';
-        statusText.innerText = '🔴 Live Mode Standby - Click Start to Talk';
-        statusPill.style.borderColor = 'rgba(0, 240, 255, 0.35)';
-        statusPill.style.color = 'var(--cyan)';
-        btnToggle.innerText = '⚡ Start Live Conversation';
-        btnToggle.className = 'btn btn-gold';
-        btnMute.style.display = 'none';
-        btnInterrupt.style.display = 'none';
-      } else if (state === 'listening') {
-        orb.classList.add('state-listening');
-        icon.innerText = isLiveMuted ? '🔇' : '🎙️';
-        statusText.innerText = isLiveMuted ? '🔇 Mic Muted - Click Unmute' : '🎧 Listening... Speak freely, no buttons needed';
-        statusPill.style.borderColor = 'var(--cyan)';
-        statusPill.style.color = 'var(--cyan)';
-        btnToggle.innerText = '⏹️ End Live Mode';
-        btnToggle.className = 'btn';
-        btnMute.style.display = 'inline-block';
-        btnInterrupt.style.display = 'none';
-      } else if (state === 'thinking') {
-        orb.classList.add('state-thinking');
-        icon.innerText = '🧠';
-        statusText.innerText = '🧠 Jarvis is thinking...';
-        statusPill.style.borderColor = 'var(--gold)';
-        statusPill.style.color = 'var(--gold)';
-        btnMute.style.display = 'inline-block';
-        btnInterrupt.style.display = 'none';
-      } else if (state === 'speaking') {
-        orb.classList.add('state-speaking');
-        icon.innerText = '🗣️';
-        statusText.innerText = '🗣️ Jarvis is speaking... (Speak anytime to interrupt)';
-        statusPill.style.borderColor = 'var(--success)';
-        statusPill.style.color = 'var(--success)';
-        btnMute.style.display = 'inline-block';
-        btnInterrupt.style.display = 'inline-block';
-      }
-    }
-
-    function initLiveCanvas() {
-      const canvas = document.getElementById('live-wave-canvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      canvas.width = canvas.parentElement.clientWidth > 500 ? 500 : canvas.parentElement.clientWidth - 40;
-      canvas.height = 50;
-
-      function renderWave() {
-        animFrameId = requestAnimationFrame(renderWave);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const cx = canvas.width / 2;
-        const cy = canvas.height / 2;
-
-        if (liveState === 'listening' || liveState === 'speaking') {
-          let energy = 10;
-          if (liveAnalyser) {
-            const data = new Uint8Array(liveAnalyser.frequencyBinCount);
-            liveAnalyser.getByteFrequencyData(data);
-            let sum = 0;
-            for (let i = 0; i < 32; i++) sum += data[i];
-            energy = Math.max(10, (sum / 32) * 0.8);
-          }
-
-          ctx.beginPath();
-          ctx.strokeStyle = liveState === 'speaking' ? '#10b981' : '#00f0ff';
-          ctx.lineWidth = 2.5;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = ctx.strokeStyle;
-
-          const numPoints = 30;
-          const sliceWidth = canvas.width / numPoints;
-          const time = Date.now() * 0.005;
-
-          for (let i = 0; i <= numPoints; i++) {
-            const x = i * sliceWidth;
-            const distFromCenter = Math.abs(x - cx) / cx;
-            const envelope = 1 - Math.pow(distFromCenter, 2);
-            const y = cy + Math.sin(time + i * 0.4) * (energy * 0.7 * envelope);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.stroke();
-        } else if (liveState === 'thinking') {
-          ctx.beginPath();
-          ctx.strokeStyle = '#ffd700';
-          ctx.lineWidth = 2;
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = '#ffd700';
-          const time = Date.now() * 0.008;
-          for (let x = 0; x <= canvas.width; x += 10) {
-            const y = cy + Math.sin(time + x * 0.05) * 8;
-            if (x === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          }
-          ctx.stroke();
+        if (icon) icon.innerText = '🎙️';
+        if (statusText) statusText.innerText = '🔴 Live Mode Standby - Click Start to Talk';
+        if (statusDot) { statusDot.style.background = 'var(--danger)'; statusDot.style.boxShadow = '0 0 10px var(--danger)'; }
+        if (statusPill) { statusPill.style.borderColor = 'var(--border-hud)'; statusPill.style.color = 'var(--cyan)'; }
+        if (btnToggle) {
+          btnToggle.innerText = '⚡ START LIVE CONVERSATION';
+          btnToggle.className = 'btn-primary-vfx';
         }
+        if (btnMute) btnMute.style.display = 'none';
+        if (btnInterrupt) btnInterrupt.style.display = 'none';
+      } else if (state === 'listening') {
+        if (icon) icon.innerText = isLiveMuted ? '🔇' : '🎙️';
+        if (statusText) statusText.innerText = isLiveMuted ? '🔇 Mic Muted - Click Unmute' : '🎧 Listening Live... Speak freely, no buttons needed';
+        if (statusDot) { statusDot.style.background = 'var(--green)'; statusDot.style.boxShadow = '0 0 12px var(--green)'; }
+        if (statusPill) { statusPill.style.borderColor = 'var(--cyan)'; statusPill.style.color = 'var(--cyan)'; }
+        if (btnToggle) {
+          btnToggle.innerText = '🛑 STOP LIVE CONVERSATION';
+          btnToggle.className = 'btn-primary-vfx active-stop';
+        }
+        if (btnMute) btnMute.style.display = 'inline-flex';
+        if (btnInterrupt) btnInterrupt.style.display = 'none';
+      } else if (state === 'thinking') {
+        if (icon) icon.innerText = '🧠';
+        if (statusText) statusText.innerText = '🧠 Jarvis is thinking...';
+        if (statusDot) { statusDot.style.background = 'var(--gold)'; statusDot.style.boxShadow = '0 0 12px var(--gold)'; }
+        if (statusPill) { statusPill.style.borderColor = 'var(--gold)'; statusPill.style.color = 'var(--gold)'; }
+        if (btnMute) btnMute.style.display = 'inline-flex';
+        if (btnInterrupt) btnInterrupt.style.display = 'none';
+      } else if (state === 'speaking') {
+        if (icon) icon.innerText = '🗣️';
+        if (statusText) statusText.innerText = '🗣️ Jarvis is speaking... (Speak anytime to interrupt)';
+        if (statusDot) { statusDot.style.background = 'var(--green)'; statusDot.style.boxShadow = '0 0 14px var(--green)'; }
+        if (statusPill) { statusPill.style.borderColor = 'var(--green)'; statusPill.style.color = 'var(--green)'; }
+        if (btnMute) btnMute.style.display = 'inline-flex';
+        if (btnInterrupt) btnInterrupt.style.display = 'inline-flex';
       }
-      renderWave();
     }
 
     async function startLiveMode() {
       if (isLiveModeActive) return;
+      playUFX('engage');
+      warmUpAudio();
       isLiveModeActive = true;
       isLiveMuted = false;
 
-      // 1. Request microphone access for audio analyzer
       try {
         liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -621,7 +1416,6 @@
         console.warn('Microphone stream analyzer note:', e.message);
       }
 
-      // 2. Initialize continuous SpeechRecognition
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         alert('आपके ब्राउज़र में रियल-टाइम स्पीच रिकग्निशन उपलब्ध नहीं है। कृपया गूगल क्रोम या एज का उपयोग करें।');
@@ -633,15 +1427,10 @@
       liveRecognition = new SpeechRecognition();
       liveRecognition.continuous = true;
       liveRecognition.interimResults = true;
-      liveRecognition.lang = currentLanguageCode === 'en' ? 'en-US' : (currentLanguageCode === 'pa' ? 'pa-IN' : 'hi-IN');
+      liveRecognition.lang = getSpeechLocale(currentLanguageCode);
 
       liveRecognition.onresult = event => {
         if (!isLiveModeActive || isLiveMuted) return;
-
-        // Barge-in: If user speaks while Jarvis is talking, immediately silence Jarvis!
-        if (liveState === 'speaking') {
-          interruptSpeaking();
-        }
 
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -653,6 +1442,10 @@
           }
         }
 
+        if (liveState === 'speaking' && (interim.trim().length > 2 || liveAccumulatedText.trim().length > 2)) {
+          interruptSpeaking();
+        }
+
         const currentSaid = (liveAccumulatedText + ' ' + interim).trim();
         if (currentSaid) {
           const sub = document.getElementById('live-subtitles');
@@ -660,14 +1453,37 @@
             sub.innerHTML = `<span style="color: var(--cyan); font-weight: 700;">You:</span> <span style="color: #fff;">${currentSaid}</span>`;
           }
 
-          // Supercomputer-Fast Voice Activity Detection (VAD): 280ms silence trigger
+          // Dynamic Human-Cadence VAD: Listens through natural pauses and waits for complete sentences
+          const words = currentSaid.split(/\s+/).filter(Boolean);
+          const lastWord = (words[words.length - 1] || '').toLowerCase().replace(/[^a-zA-Z\u0900-\u097F]/g, '');
+
+          const conjunctions = [
+            'aur', 'or', 'and', 'ki', 'ke', 'ka', 'ko', 'se', 'me', 'mein', 'par', 'pe',
+            'lekin', 'parantu', 'kintu', 'magar', 'ya', 'to', 'toh', 'matlab', 'jaise',
+            'agar', 'yadi', 'kyunki', 'because', 'so', 'then', 'that', 'with', 'about', 'jaise'
+          ];
+          const terminators = [
+            'batao', 'bataiye', 'karo', 'kariye', 'kya', 'hai', 'hain', 'ho', 'hoga', 'tha',
+            'the', 'thi', 'sunao', 'chalao', 'khol', 'dikhao', 'banao', 'bhejo', 'please',
+            'thanks', 'thank'
+          ];
+
+          let silenceDelay = 1150; // Standard natural conversational cadence (~1.15s)
+          if (words.length <= 3) {
+            silenceDelay = 1400; // Allow breathing room for the user to formulate the full question
+          } else if (conjunctions.includes(lastWord)) {
+            silenceDelay = 1650; // User paused mid-clause (conjunction); keep listening patiently
+          } else if (terminators.includes(lastWord) || /[.?!।]$/.test(currentSaid)) {
+            silenceDelay = 850;  // Explicit sentence completion marker
+          }
+
           if (liveSilenceTimer) clearTimeout(liveSilenceTimer);
           liveSilenceTimer = setTimeout(() => {
             const finalQuery = currentSaid.trim();
             if (finalQuery.length > 1 && isLiveModeActive && liveState === 'listening') {
               sendLiveTurn(finalQuery);
             }
-          }, 280);
+          }, silenceDelay);
         }
       };
 
@@ -677,7 +1493,6 @@
       };
 
       liveRecognition.onend = () => {
-        // Auto-restart recognition to keep continuous session live
         if (isLiveModeActive && !isLiveMuted && liveState !== 'speaking') {
           setTimeout(() => {
             try {
@@ -692,7 +1507,6 @@
       } catch {}
 
       setLiveState('listening');
-      initLiveCanvas();
 
       const personaLabel = document.getElementById('live-active-persona');
       const vSelect = document.getElementById('voice-select');
@@ -702,15 +1516,19 @@
     }
 
     async function sendLiveTurn(text) {
-      if (!text || !isLiveModeActive) return;
+      if (!isLiveModeActive || !text) return;
       liveAccumulatedText = '';
       setLiveState('thinking');
+
+      try {
+        if (liveRecognition) liveRecognition.stop();
+      } catch {}
 
       const sub = document.getElementById('live-subtitles');
       if (sub) {
         sub.innerHTML = `
           <div style="color: var(--cyan); margin-bottom: 6px;"><strong>You:</strong> ${text}</div>
-          <div style="color: var(--gold);"><span class="badge-dot" style="display:inline-block; margin-right:4px;"></span> जार्विस विचार कर रहा है...</div>
+          <div style="color: var(--gold); animation: pulse 1s infinite;">🧠 जार्विस विचार कर रहा है...</div>
         `;
       }
 
@@ -735,14 +1553,14 @@
           if (data.latencyMs) {
             const latPill = document.getElementById('live-latency-pill');
             if (latPill) {
-              const modelShort = data.model ? data.model.split('/')[1] : 'Supercomputer';
+              const modelShort = data.model ? data.model.split('/')[1] : 'Neural';
               latPill.innerText = `⚡ ${data.latencyMs}ms (${modelShort})`;
             }
           }
           if (sub) {
             sub.innerHTML = `
               <div style="color: var(--cyan); margin-bottom: 6px;"><strong>You:</strong> ${text}</div>
-              <div style="color: var(--success); font-weight: 500;"><strong>Jarvis:</strong> ${data.reply}</div>
+              <div style="color: var(--green); font-weight: 500;"><strong>Jarvis (${data.voice || 'Voice'}):</strong> ${data.reply}</div>
             `;
           }
 
@@ -754,11 +1572,10 @@
             liveCurrentAudio = new Audio(data.audioUrl);
             liveCurrentAudio.onended = () => {
               liveCurrentAudio = null;
+              liveAccumulatedText = '';
               if (isLiveModeActive) {
                 setLiveState('listening');
-                try {
-                  liveRecognition.start();
-                } catch {}
+                try { liveRecognition.start(); } catch {}
               }
             };
             liveCurrentAudio.onerror = () => {
@@ -772,16 +1589,17 @@
             setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
           }
         } else {
-          if (sub) sub.innerHTML = `<span style="color: var(--red);">त्रुटि: ${data.error || 'उत्तर नहीं मिला'}</span>`;
+          if (sub) sub.innerHTML = `<span style="color: var(--danger);">त्रुटि: ${data.error || 'उत्तर नहीं मिला'}</span>`;
           setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
         }
       } catch (err) {
-        if (sub) sub.innerHTML = `<span style="color: var(--red);">कनेक्शन समस्या: ${err.message}</span>`;
+        if (sub) sub.innerHTML = `<span style="color: var(--danger);">कनेक्शन समस्या: ${err.message}</span>`;
         setTimeout(() => { if (isLiveModeActive) setLiveState('listening'); }, 2000);
       }
     }
 
     function interruptSpeaking() {
+      playUFX('blip');
       if (liveCurrentAudio) {
         liveCurrentAudio.pause();
         liveCurrentAudio.currentTime = 0;
@@ -795,6 +1613,7 @@
     }
 
     function toggleLiveMute() {
+      playUFX('blip');
       isLiveMuted = !isLiveMuted;
       const btn = document.getElementById('btn-live-mute');
       if (btn) btn.innerText = isLiveMuted ? '🔇 Unmute' : '🎙️ Mute';
@@ -808,6 +1627,7 @@
     }
 
     function stopLiveMode() {
+      playUFX('disengage');
       isLiveModeActive = false;
       isLiveMuted = false;
       if (liveSilenceTimer) clearTimeout(liveSilenceTimer);
@@ -827,7 +1647,6 @@
         try { liveAudioCtx.close(); } catch {}
         liveAudioCtx = null;
       }
-      if (animFrameId) cancelAnimationFrame(animFrameId);
       setLiveState('idle');
       const sub = document.getElementById('live-subtitles');
       if (sub) {
@@ -843,8 +1662,220 @@
       }
     }
 
-    // AI Chat & Speech Synthesis
+    // ==========================================
+    // 4. 3D HOLOGRAPHIC REACTOR CANVAS (VFX CORE)
+    // ==========================================
+    const coreCanvas = document.getElementById('jarvis-core-canvas');
+    const cCtx = coreCanvas ? coreCanvas.getContext('2d') : null;
+    let coreAngle = 0;
+
+    function drawCore() {
+      if (!cCtx) return;
+      cCtx.clearRect(0, 0, 300, 300);
+      const cx = 150, cy = 150;
+      
+      let speed = 0.012;
+      if (liveState === 'listening') speed = 0.045;
+      else if (liveState === 'thinking') speed = 0.085;
+      else if (liveState === 'speaking') speed = 0.035;
+      coreAngle += speed;
+
+      // Outer Energy Aura
+      const grad = cCtx.createRadialGradient(cx, cy, 30, cx, cy, liveState === 'listening' ? 142 : (liveState === 'speaking' ? 148 : 118));
+      if (liveState === 'listening') {
+        grad.addColorStop(0, 'rgba(0, 243, 255, 0.42)');
+      } else if (liveState === 'thinking') {
+        grad.addColorStop(0, 'rgba(255, 170, 0, 0.45)');
+      } else if (liveState === 'speaking') {
+        grad.addColorStop(0, 'rgba(0, 255, 136, 0.45)');
+      } else {
+        grad.addColorStop(0, 'rgba(0, 102, 255, 0.22)');
+      }
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      cCtx.fillStyle = grad;
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, 140, 0, Math.PI * 2);
+      cCtx.fill();
+
+      // Outer Dashed HUD Ring (Ring 1)
+      cCtx.save();
+      cCtx.translate(cx, cy);
+      cCtx.rotate(coreAngle);
+      cCtx.strokeStyle = liveState === 'speaking' ? '#00ff88' : (liveState === 'thinking' ? '#ffaa00' : '#00f3ff');
+      cCtx.lineWidth = 2.5;
+      cCtx.setLineDash([18, 10, 4, 10]);
+      cCtx.beginPath();
+      cCtx.arc(0, 0, 114, 0, Math.PI * 2);
+      cCtx.stroke();
+      cCtx.restore();
+
+      // Segmented Arcs Ring (Ring 2)
+      cCtx.save();
+      cCtx.translate(cx, cy);
+      cCtx.rotate(-coreAngle * 1.5);
+      cCtx.strokeStyle = liveState === 'listening' ? '#00f3ff' : (liveState === 'thinking' ? '#ff5500' : 'rgba(0, 243, 255, 0.65)');
+      cCtx.lineWidth = 4;
+      for (let i = 0; i < 4; i++) {
+        cCtx.beginPath();
+        cCtx.arc(0, 0, 88, i * (Math.PI / 2) + 0.2, (i + 1) * (Math.PI / 2) - 0.2);
+        cCtx.stroke();
+      }
+      cCtx.restore();
+
+      // Quantum Ticks Ring (Ring 3)
+      cCtx.save();
+      cCtx.translate(cx, cy);
+      cCtx.rotate(coreAngle * 0.7);
+      cCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      cCtx.lineWidth = 1.5;
+      for (let i = 0; i < 12; i++) {
+        const rad = (i * Math.PI) / 6;
+        cCtx.beginPath();
+        cCtx.moveTo(Math.cos(rad) * 68, Math.sin(rad) * 68);
+        cCtx.lineTo(Math.cos(rad) * 76, Math.sin(rad) * 76);
+        cCtx.stroke();
+      }
+      cCtx.restore();
+
+      // Inner Pulse Ring
+      const pulseAmp = liveState === 'speaking' ? 8 : (liveState === 'listening' ? 5 : 2.5);
+      const pulseR = 60 + Math.sin(coreAngle * 3) * pulseAmp;
+      cCtx.strokeStyle = liveState === 'speaking' ? '#00ff88' : 'rgba(0, 243, 255, 0.7)';
+      cCtx.lineWidth = 2;
+      cCtx.beginPath();
+      cCtx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+      cCtx.stroke();
+
+      if (activeTabId === 'live') {
+        requestAnimationFrame(drawCore);
+      }
+    }
+    drawCore();
+
+    // ==========================================
+    // 5. AUDIO SPECTRUM FREQUENCY VISUALIZER
+    // ==========================================
+    const waveCanvas = document.getElementById('live-wave-canvas');
+    const wCtx = waveCanvas ? waveCanvas.getContext('2d') : null;
+    let wavePhase = 0;
+    let gradGreen, gradGold, gradCyan;
+
+    function initGradients() {
+      if (!wCtx || !waveCanvas) return;
+      gradGreen = wCtx.createLinearGradient(0, 0, 0, waveCanvas.height);
+      gradGreen.addColorStop(0, '#00ff88'); gradGreen.addColorStop(1, '#0066ff');
+
+      gradGold = wCtx.createLinearGradient(0, 0, 0, waveCanvas.height);
+      gradGold.addColorStop(0, '#ffaa00'); gradGold.addColorStop(1, '#ff5500');
+
+      gradCyan = wCtx.createLinearGradient(0, 0, 0, waveCanvas.height);
+      gradCyan.addColorStop(0, '#00f3ff'); gradCyan.addColorStop(1, '#0066ff');
+    }
+    initGradients();
+
+    function drawWaveform() {
+      if (!wCtx || !waveCanvas || activeTabId !== 'live') return;
+      wCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+      const bars = 32;
+      const barWidth = 8;
+      const gap = 6;
+      const startX = (waveCanvas.width - (bars * (barWidth + gap))) / 2;
+      wavePhase += 0.14;
+
+      let freqData = null;
+      if (liveAnalyser) {
+        freqData = new Uint8Array(liveAnalyser.frequencyBinCount);
+        liveAnalyser.getByteFrequencyData(freqData);
+      }
+
+      const activeGrad = liveState === 'speaking' ? gradGreen : (liveState === 'thinking' ? gradGold : gradCyan);
+      wCtx.fillStyle = activeGrad || '#00f3ff';
+
+      for (let i = 0; i < bars; i++) {
+        let val = 4;
+        if (liveState === 'listening' || liveState === 'speaking') {
+          if (freqData && freqData.length > 0) {
+            val = Math.max(6, (freqData[i % freqData.length] / 255) * 54);
+          } else {
+            val = 8 + Math.abs(Math.sin(wavePhase + i * 0.45)) * 38;
+          }
+        } else if (liveState === 'thinking') {
+          val = 6 + Math.abs(Math.sin(wavePhase * 2.2 + i * 0.6)) * 26;
+        } else {
+          val = 4 + Math.abs(Math.sin(wavePhase * 0.4 + i * 0.25)) * 6;
+        }
+
+        const x = startX + i * (barWidth + gap);
+        const y = (waveCanvas.height - val) / 2;
+
+        wCtx.beginPath();
+        if (wCtx.roundRect) {
+          wCtx.roundRect(x, y, barWidth, val, 3);
+        } else {
+          wCtx.rect(x, y, barWidth, val);
+        }
+        wCtx.fill();
+      }
+      requestAnimationFrame(drawWaveform);
+    }
+    drawWaveform();
+
+    // ==========================================
+    // 6. AMBIENT QUANTUM PARTICLES BACKGROUND
+    // ==========================================
+    const bgCanvas = document.getElementById('bg-particles');
+    const bCtx = bgCanvas ? bgCanvas.getContext('2d') : null;
+    let particles = [];
+    let lastPFrame = 0;
+
+    function resizeBg() {
+      if (!bgCanvas) return;
+      bgCanvas.width = Math.floor(window.innerWidth / 2);
+      bgCanvas.height = Math.floor(window.innerHeight / 2);
+    }
+    window.addEventListener('resize', resizeBg);
+    resizeBg();
+
+    if (bgCanvas) {
+      particles = Array.from({ length: 20 }, () => ({
+        x: Math.random() * bgCanvas.width,
+        y: Math.random() * bgCanvas.height,
+        r: Math.random() * 1.5 + 0.6,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35
+      }));
+    }
+
+    function drawParticles(timestamp) {
+      if (!bCtx || !bgCanvas) return;
+      if (timestamp - lastPFrame < 33) {
+        requestAnimationFrame(drawParticles);
+        return;
+      }
+      lastPFrame = timestamp;
+
+      bCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      bCtx.fillStyle = 'rgba(0, 243, 255, 0.4)';
+      
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+        bCtx.beginPath();
+        bCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    requestAnimationFrame(drawParticles);
+
+    // ==========================================
+    // 7. AI CHAT & SPEECH SYNTHESIS
+    // ==========================================
     async function sendChatMessage() {
+      playUFX('blip');
+      warmUpAudio();
       const input = document.getElementById('chat-text');
       const text = input.value.trim();
       if (!text) return;
@@ -875,6 +1906,11 @@
             playerBox.className = 'audio-player-box';
             playerBox.innerHTML = `<audio controls autoplay src="${data.audioUrl}"></audio>`;
             msgEl.appendChild(playerBox);
+
+            try {
+              const audioObj = new Audio(data.audioUrl);
+              audioObj.play().catch(e => console.warn('Autoplay audio notice:', e.message));
+            } catch (e) {}
           }
         } else {
           appendMessage('त्रुटि: ' + (data.error || 'प्रक्रिया विफल'), 'bot');
@@ -889,13 +1925,13 @@
       const stream = document.getElementById('chat-stream');
       const msg = document.createElement('div');
       msg.className = `msg msg-${sender}`;
-      msg.innerText = text;
+      msg.innerHTML = `<strong>${sender === 'user' ? 'You:' : 'J.A.R.V.I.S.:'}</strong> ${text}`;
       stream.appendChild(msg);
       stream.scrollTop = stream.scrollHeight;
       return msg;
     }
 
-    // Speech-to-Text Microphone Recording
+    // Speech-to-Text Microphone Recording in Chat
     let recognition = null;
     let isRecording = false;
 
@@ -913,12 +1949,16 @@
       };
       recognition.onend = () => {
         isRecording = false;
-        document.getElementById('mic-btn').classList.remove('recording');
-        document.getElementById('mic-btn').innerText = '🎙️ बोलें';
+        const btn = document.getElementById('mic-btn');
+        if (btn) {
+          btn.classList.remove('recording');
+          btn.innerText = '🎙️ बोलें';
+        }
       };
     }
 
     function toggleVoiceRecording() {
+      playUFX('blip');
       if (!recognition) {
         alert('आपके ब्राउज़र में स्पीच रिकग्निशन उपलब्ध नहीं है। कृपया गूगल क्रोम का उपयोग करें।');
         return;
@@ -928,15 +1968,20 @@
         recognition.lang = currentLanguageCode === 'en' ? 'en-US' : (currentLanguageCode === 'pa' ? 'pa-IN' : 'hi-IN');
         recognition.start();
         isRecording = true;
-        btn.classList.add('recording');
-        btn.innerText = '🔴 सुन रहा हूँ...';
+        if (btn) {
+          btn.classList.add('recording');
+          btn.innerText = '🔴 सुन रहा हूँ...';
+        }
       } else {
         recognition.stop();
       }
     }
 
-    // Media Search & Play
+    // ==========================================
+    // 8. MEDIA SEARCH, STREAMING & SCRUBBER
+    // ==========================================
     async function searchMedia() {
+      playUFX('blip');
       const query = document.getElementById('media-search-input').value.trim();
       const isVideo = document.getElementById('media-is-video').checked;
       if (!query) return;
@@ -952,20 +1997,19 @@
           currentMediaItem = data;
           document.getElementById('media-title').innerText = data.title;
           document.getElementById('media-artist').innerText = data.artist || 'YouTube Media';
-          document.getElementById('media-duration').innerText = 'अवधि: ' + (data.duration || 'Live');
-          document.getElementById('media-thumb').src = data.thumbnail || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300';
+          document.getElementById('media-thumb').src = data.thumbnail || '';
+          document.getElementById('media-duration').innerText = `Duration: ${formatSecs(data.duration_seconds || 0)}`;
+          document.getElementById('yt-tot-time').innerText = formatSecs(data.duration_seconds || 0);
         } else {
-          document.getElementById('media-title').innerText = 'त्रुटि: ' + (data.error || 'मीडिया नहीं मिला');
+          document.getElementById('media-title').innerText = 'परिणाम नहीं मिला: ' + (data.error || 'पुनः प्रयास करें');
         }
-      } catch (e) {
-        document.getElementById('media-title').innerText = 'सर्च विफल: ' + e.message;
+      } catch (err) {
+        document.getElementById('media-title').innerText = 'खोज विफल: ' + err.message;
       }
     }
 
-    let activePlayer = null;
-    let isVcStreaming = false;
-
     function formatSecs(sec) {
+      if (!sec || isNaN(sec)) return '00:00';
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -997,6 +2041,7 @@
     }
 
     function playInBrowser() {
+      playUFX('blip');
       if (!currentMediaItem || !currentMediaItem.stream_url) return;
       const container = document.getElementById('browser-player-container');
       const audioP = document.getElementById('browser-audio-player');
@@ -1027,6 +2072,7 @@
     }
 
     async function seekRelative(deltaSec) {
+      playUFX('blip');
       if (activePlayer && !isNaN(activePlayer.currentTime)) {
         activePlayer.currentTime = Math.max(0, activePlayer.currentTime + deltaSec);
         updateProgressBar(activePlayer.currentTime, activePlayer.duration || currentMediaItem?.duration_seconds || 0);
@@ -1042,6 +2088,7 @@
     }
 
     async function toggleBrowserPlayback() {
+      playUFX('blip');
       if (activePlayer) {
         if (activePlayer.paused) {
           activePlayer.play();
@@ -1054,6 +2101,7 @@
     }
 
     async function stopAllPlayback() {
+      playUFX('blip');
       if (activePlayer) {
         activePlayer.pause();
         activePlayer.currentTime = 0;
@@ -1087,6 +2135,7 @@
     }
 
     async function streamToTelegramVC() {
+      playUFX('blip');
       if (!currentMediaItem) return;
       alert(`Streaming "${currentMediaItem.title}" to Telegram Voice Chat...`);
       try {
@@ -1112,7 +2161,9 @@
       }
     }
 
-    // Dashboard Data
+    // ==========================================
+    // 9. TELEGRAM DASHBOARD & BROADCAST
+    // ==========================================
     async function loadDashboardData() {
       try {
         const [statusRes, chatsRes] = await Promise.all([
@@ -1134,11 +2185,11 @@
             tr.innerHTML = `
               <td><code>${c.id}</code></td>
               <td><strong>${c.title || 'User'}</strong> ${c.username ? '@' + c.username : ''}</td>
-              <td><span class="badge ${c.type === 'private' ? 'badge-online' : 'badge-gold'}" style="background: rgba(255,255,255,0.1); color: #fff;">${c.type}</span></td>
+              <td><span class="hud-pill" style="font-size: 0.7rem; padding: 2px 8px; display:inline-flex;">${c.type}</span></td>
               <td>${c.activeLanguage}</td>
               <td><code>${c.activeVoice}</code></td>
               <td>
-                <button class="btn btn-sm" style="background: rgba(255,61,0,0.2); color: var(--red);" onclick="removeChat('${c.id}')">हटाएं</button>
+                <button class="btn-danger-vfx" style="padding: 4px 10px; font-size: 0.8rem;" onclick="removeChat('${c.id}')">हटाएं</button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -1150,6 +2201,7 @@
     }
 
     async function sendBroadcast() {
+      playUFX('blip');
       const text = document.getElementById('broadcast-input').value.trim();
       if (!text) return;
       if (!confirm('क्या आप सभी कनेक्टेड टेलीग्राम ग्रुप्स और यूज़र्स को यह ब्रॉडकास्ट भेजना चाहते हैं?')) return;
@@ -1180,6 +2232,9 @@
       loadDashboardData();
     }
 
+    // ==========================================
+    // 10. DYNAMIC VOICES & LANGUAGES MATRIX
+    // ==========================================
     async function loadVoicesAndLanguages() {
       try {
         const [voicesRes, langsRes] = await Promise.all([
@@ -1189,48 +2244,75 @@
 
         if (voicesRes.ok && voicesRes.voices) {
           const vSelect = document.getElementById('voice-select');
-          vSelect.innerHTML = '';
+          const liveVSel = document.getElementById('live-voice-select');
+          if (vSelect) vSelect.innerHTML = '';
+          if (liveVSel) liveVSel.innerHTML = '';
 
           const groups = {
-            '🌟 MCU & Iconic Personas': [],
-            '🎙️ Indian Natural Voice Studio (30+ Models)': [],
-            '🌐 Regional & International Voices': [],
+            '🌟 MCU Jarvis Subsystems': [],
+            '⚡ Cartesia Sonic Ultra-Fast (Hindi/English)': [],
+            '🎭 ElevenLabs Neural Expressive': [],
+            '🌐 Google Cloud Neural Studio': [],
+            '💎 Microsoft Edge Natural': [],
+            '🔥 Anime & Studio Personas': [],
+            '✨ Standard Voices': [],
           };
 
-          voicesRes.voices.forEach(v => {
-            if (v.id.startsWith('mcu_')) {
-              groups['🌟 MCU & Iconic Personas'].push(v);
-            } else if (v.id.startsWith('cartesia_') || v.id.startsWith('studio_')) {
-              groups['🎙️ Indian Natural Voice Studio (30+ Models)'].push(v);
-            } else {
-              groups['🌐 Regional & International Voices'].push(v);
-            }
-          });
+          for (const v of voicesRes.voices) {
+            const id = v.id;
+            if (id.startsWith('mcu_')) groups['🌟 MCU Jarvis Subsystems'].push(v);
+            else if (id.startsWith('cartesia_')) groups['⚡ Cartesia Sonic Ultra-Fast (Hindi/English)'].push(v);
+            else if (id.startsWith('eleven_')) groups['🎭 ElevenLabs Neural Expressive'].push(v);
+            else if (id.startsWith('gcloud_')) groups['🌐 Google Cloud Neural Studio'].push(v);
+            else if (id.startsWith('edge_')) groups['💎 Microsoft Edge Natural'].push(v);
+            else if (id.startsWith('anime_') || id.startsWith('host_')) groups['🔥 Anime & Studio Personas'].push(v);
+            else groups['✨ Standard Voices'].push(v);
+          }
 
-          for (const [grpName, vList] of Object.entries(groups)) {
-            if (vList.length === 0) continue;
+          for (const [groupName, list] of Object.entries(groups)) {
+            if (list.length === 0) continue;
             const optGrp = document.createElement('optgroup');
-            optGrp.label = `${grpName} (${vList.length})`;
-            vList.forEach(v => {
+            optGrp.label = groupName;
+            const liveOptGrp = document.createElement('optgroup');
+            liveOptGrp.label = groupName;
+
+            list.forEach(v => {
               const opt = document.createElement('option');
               opt.value = v.id;
-              opt.textContent = `${v.name}${v.description ? ' — ' + v.description : ''}`;
+              opt.textContent = `${v.name} (${v.gender}, ${v.engine})`;
               if (v.id === currentVoiceId) opt.selected = true;
               optGrp.appendChild(opt);
+
+              const liveOpt = document.createElement('option');
+              liveOpt.value = v.id;
+              liveOpt.textContent = v.name;
+              if (v.id === currentVoiceId) liveOpt.selected = true;
+              liveOptGrp.appendChild(liveOpt);
             });
-            vSelect.appendChild(optGrp);
+            if (vSelect) vSelect.appendChild(optGrp);
+            if (liveVSel) liveVSel.appendChild(liveOptGrp);
           }
         }
 
         if (langsRes.ok && langsRes.languages) {
           const lSelect = document.getElementById('lang-select');
-          lSelect.innerHTML = '';
-          for (const [code, l] of Object.entries(langsRes.languages)) {
+          const liveLSel = document.getElementById('live-lang-select');
+          if (lSelect) lSelect.innerHTML = '';
+          if (liveLSel) liveLSel.innerHTML = '';
+
+          for (const [key, l] of Object.entries(langsRes.languages)) {
+            const langCode = l.code || key;
             const opt = document.createElement('option');
-            opt.value = code;
-            opt.textContent = `${l.name} (${code.toUpperCase()})`;
-            if (code === currentLanguageCode) opt.selected = true;
-            lSelect.appendChild(opt);
+            opt.value = langCode;
+            opt.textContent = `${l.name} (${langCode.toUpperCase()})`;
+            if (langCode === currentLanguageCode || key === currentLanguageCode) opt.selected = true;
+            if (lSelect) lSelect.appendChild(opt);
+
+            const liveOpt = document.createElement('option');
+            liveOpt.value = langCode;
+            liveOpt.textContent = `${l.name}`;
+            if (langCode === currentLanguageCode || key === currentLanguageCode) liveOpt.selected = true;
+            if (liveLSel) liveLSel.appendChild(liveOpt);
           }
         }
 
@@ -1241,10 +2323,11 @@
     }
 
     async function testSelectedVoice() {
+      playUFX('blip');
       const vSelect = document.getElementById('voice-select');
-      const vId = vSelect.value;
+      const vId = vSelect ? vSelect.value : currentVoiceId;
       const lSelect = document.getElementById('lang-select');
-      const lCode = lSelect.value;
+      const lCode = lSelect ? lSelect.value : currentLanguageCode;
       const testBtn = document.getElementById('btn-test-voice');
       if (testBtn) testBtn.innerText = '⏳ आवाज़ तैयार हो रही है...';
 
@@ -1260,7 +2343,7 @@
         });
         const data = await res.json();
         if (data.ok && data.audioUrl) {
-          const snd = new Audio(`/cache/${data.audioUrl}`);
+          const snd = new Audio(data.audioUrl);
           snd.play();
         }
       } catch (e) {
@@ -1271,29 +2354,57 @@
     }
 
     function updateSelectedVoice() {
-      currentVoiceId = document.getElementById('voice-select').value;
+      const vSelect = document.getElementById('voice-select');
+      if (vSelect) {
+        currentVoiceId = vSelect.value;
+        localStorage.setItem('jarvis_voice_id', currentVoiceId);
+        const liveVSel = document.getElementById('live-voice-select');
+        if (liveVSel) liveVSel.value = currentVoiceId;
+      }
       updateIndicator();
     }
 
     function updateSelectedLanguage() {
-      currentLanguageCode = document.getElementById('lang-select').value;
+      const lSelect = document.getElementById('lang-select');
+      if (lSelect) {
+        currentLanguageCode = lSelect.value;
+        localStorage.setItem('jarvis_lang_code', currentLanguageCode);
+        const liveLSel = document.getElementById('live-lang-select');
+        if (liveLSel) liveLSel.value = currentLanguageCode;
+
+        if (liveRecognition) {
+          liveRecognition.lang = getSpeechLocale(currentLanguageCode);
+          if (isLiveModeActive && !isLiveMuted && liveState === 'listening') {
+            try {
+              liveRecognition.stop();
+              setTimeout(() => { if (isLiveModeActive) liveRecognition.start(); }, 150);
+            } catch {}
+          }
+        }
+      }
       updateIndicator();
     }
 
     function updateIndicator() {
-      const vSelect = document.getElementById('voice-select');
-      const lSelect = document.getElementById('lang-select');
-      const vName = vSelect.selectedOptions && vSelect.selectedOptions[0] ? vSelect.selectedOptions[0].text : currentVoiceId;
-      const lName = lSelect.selectedOptions && lSelect.selectedOptions[0] ? lSelect.selectedOptions[0].text : currentLanguageCode;
+      const vSelect = document.getElementById('voice-select') || document.getElementById('live-voice-select');
+      const lSelect = document.getElementById('lang-select') || document.getElementById('live-lang-select');
+      const vName = vSelect && vSelect.selectedOptions && vSelect.selectedOptions[0] ? vSelect.selectedOptions[0].text : currentVoiceId;
+      const lName = lSelect && lSelect.selectedOptions && lSelect.selectedOptions[0] ? lSelect.selectedOptions[0].text : currentLanguageCode;
+
       const ind = document.getElementById('active-profile-indicator');
       if (ind) {
         ind.innerText = `Persona: ${vName.split('(')[0].split('—')[0].trim()} | Lang: ${lName.split('(')[0].trim()}`;
       }
+      const livePersona = document.getElementById('live-active-persona');
+      if (livePersona) {
+        livePersona.innerText = vName.split('—')[0].trim();
+      }
     }
 
-    // Initialize all dynamic modules
+    // Initialize modules
     loadDashboardData();
     loadVoicesAndLanguages();
+    updateLiveModel();
   </script>
 </body>
 </html>

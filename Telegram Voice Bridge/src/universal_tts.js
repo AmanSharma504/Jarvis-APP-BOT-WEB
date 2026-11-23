@@ -332,6 +332,51 @@ async function fetchGoogleTTSAudio(text, langCode = 'hi') {
 }
 
 /**
+ * Studio Broadcast Vocal Shaper & Persona Filter Engine
+ * Replicates the natural warm acoustics of Gemini Live and ChatGPT Voice
+ * while providing unmistakable, distinct vocal character for every agent persona.
+ */
+export function getPersonaAudioFilter(voiceProfile) {
+  const id = (voiceProfile?.id || '').toLowerCase();
+  
+  if (id.includes('ultron')) {
+    // Ultron: Deep ominous robotic baritone, sub-bass harmonics
+    return 'asetrate=44100*0.85,aresample=44100,highpass=f=60,lowpass=f=9500,equalizer=f=120:t=q:w=1.2:g=5.5,equalizer=f=300:t=q:w=1.0:g=3.0,equalizer=f=3500:t=q:w=1.2:g=-2.5,acompressor=threshold=-18dB:ratio=3:attack=10:release=140,volume=1.2';
+  }
+  if (id.includes('vision')) {
+    // Vision: Ethereal philosophic calm synthezoid baritone with acoustic room aura
+    return 'asetrate=44100*0.93,aresample=44100,highpass=f=75,equalizer=f=220:t=q:w=1.2:g=2.5,equalizer=f=1400:t=q:w=1.2:g=1.8,aecho=0.8:0.3:18:0.12,acompressor=threshold=-16dB:ratio=2.2:attack=20:release=150,volume=1.05';
+  }
+  if (id.includes('friday') || id.includes('tactical')) {
+    // Friday: Quick, crisp, feminine tactical AI
+    return 'asetrate=44100*1.12,aresample=44100,highpass=f=90,lowpass=f=13000,equalizer=f=280:t=q:w=1.2:g=1.5,equalizer=f=3200:t=q:w=1.4:g=2.0,acompressor=threshold=-15dB:ratio=2.2:attack=12:release=110,volume=1.08';
+  }
+  if (id.includes('child')) {
+    // Child: Youthful high pitch
+    return 'asetrate=44100*1.28,aresample=44100,highpass=f=100,equalizer=f=400:t=q:w=1.2:g=1.8,acompressor=threshold=-16dB:ratio=2:attack=15:release=120,volume=1.05';
+  }
+  if (id.includes('arjun') || id.includes('host') || id.includes('studio')) {
+    // Host Arjun: High-energy broadcast studio DJ
+    return 'atempo=1.14,highpass=f=80,equalizer=f=160:t=q:w=1.0:g=3.0,equalizer=f=2800:t=q:w=1.2:g=2.2,acompressor=threshold=-20dB:ratio=3.5:attack=8:release=80,volume=1.12';
+  }
+  if (id.includes('anime') || id.includes('itachi')) {
+    // Itachi Anime Mode: Deep, dramatic, intense baritone with cinematic presence
+    return 'asetrate=44100*0.90,aresample=44100,highpass=f=70,equalizer=f=140:t=q:w=1.2:g=4.0,equalizer=f=2400:t=q:w=1.0:g=1.8,aecho=0.8:0.25:25:0.15,volume=1.1';
+  }
+  if (id.includes('neha') || id === 'cartesia_1') {
+    // Neha: Silky smooth, warm natural human female podcast tone (Gemini Live style)
+    return 'highpass=f=80,lowpass=f=13000,equalizer=f=220:t=q:w=1.2:g=2.0,equalizer=f=1200:t=q:w=1.5:g=1.2,equalizer=f=3800:t=q:w=1.5:g=-1.8,acompressor=threshold=-16dB:ratio=2.4:attack=15:release=120,volume=1.08';
+  }
+  if (id.includes('rahul') || id === 'cartesia_2') {
+    // Rahul: Natural casual young male tone
+    return 'highpass=f=75,equalizer=f=180:t=q:w=1.0:g=2.2,equalizer=f=1100:t=q:w=1.2:g=1.0,equalizer=f=3400:t=q:w=1.2:g=-1.2,acompressor=threshold=-16dB:ratio=2.2:attack=15:release=120,volume=1.06';
+  }
+
+  // MCU J.A.R.V.I.S. / Default: Sophisticated, intellectual, refined British MCU tone
+  return 'highpass=f=75,lowpass=f=12500,equalizer=f=200:t=q:w=1.2:g=2.2,equalizer=f=1000:t=q:w=1.5:g=0.8,equalizer=f=3500:t=q:w=1.4:g=-1.8,acompressor=threshold=-16dB:ratio=2.4:attack=15:release=120,volume=1.08';
+}
+
+/**
  * Synthesizes speech with multi-tier failover so speech NEVER fails.
  * Automatically aligns the speaker profile (gender, pitch, speed) with the target language.
  */
@@ -342,8 +387,12 @@ export async function synthesizeSpeech(text, voiceProfile, outputFilePath, prefe
   try {
     let generated = false;
     const safeText = text.trim();
-    const langCode = preferredLang || voiceProfile?.code || (voiceProfile?.voice ? voiceProfile.voice.slice(0, 2) : 'hi');
-    const langConfig = Object.values(SUPPORTED_LANGUAGES).find(l => l.code === langCode || l.aliases.includes(langCode)) || SUPPORTED_LANGUAGES.hindi;
+    const rawLang = (preferredLang || voiceProfile?.code || (voiceProfile?.voice ? voiceProfile.voice.slice(0, 2) : 'hi')).toString().toLowerCase().trim();
+    const langConfig = Object.entries(SUPPORTED_LANGUAGES).find(([k, l]) =>
+      k.toLowerCase() === rawLang || l.code?.toLowerCase() === rawLang || (l.aliases && l.aliases.map(a => a.toLowerCase()).includes(rawLang))
+    )?.[1] || SUPPORTED_LANGUAGES.hindi;
+
+    const langCode = langConfig.code || 'hi';
 
     // Detect gender of the current voice profile
     const isFemale = voiceProfile?.gender === 'female' ||
@@ -437,7 +486,8 @@ export async function synthesizeSpeech(text, voiceProfile, outputFilePath, prefe
     // TIER 3: Google Universal Neural TTS Engine (100% Zero-Fail Fallback)
     if (!generated) {
       console.log(`[Universal TTS] Activating Google Speech CDN engine for language: ${langCode}...`);
-      const gBuf = await fetchGoogleTTSAudio(safeText, langCode);
+      const googleLang = ['bho', 'sa'].includes(langCode) ? 'hi' : langCode;
+      const gBuf = await fetchGoogleTTSAudio(safeText, googleLang);
       if (gBuf && gBuf.length > 500) {
         await writeFile(tempInput, gBuf);
         generated = true;
@@ -448,19 +498,38 @@ export async function synthesizeSpeech(text, voiceProfile, outputFilePath, prefe
       throw new Error(`Failed to generate speech for language code ${langCode}`);
     }
 
-    // High-Speed Web & App Optimization: Direct MP3 passthrough (Zero FFmpeg overhead)
+    // Studio Broadcast Vocal Filter & Acoustic Persona Morphing
+    const personaFilter = getPersonaAudioFilter(voiceProfile);
+
+    // High-Speed Web & App Optimization with Studio Vocal Processing
     if (outputFilePath.endsWith('.mp3')) {
-      await rename(tempInput, outputFilePath);
+      await new Promise((resolve) => {
+        const proc = spawn(ffmpegPath, [
+          '-hide_banner', '-loglevel', 'error', '-y',
+          '-i', tempInput,
+          '-af', personaFilter,
+          '-c:a', 'libmp3lame', '-b:a', '128k', '-ar', '44100',
+          outputFilePath,
+        ]);
+        proc.on('close', code => {
+          if (code === 0) resolve();
+          else {
+            rename(tempInput, outputFilePath).then(resolve).catch(resolve);
+          }
+        });
+        proc.on('error', () => {
+          rename(tempInput, outputFilePath).then(resolve).catch(resolve);
+        });
+      });
       return true;
     }
 
     // Convert to Pristine Telegram OGG Opus with Studio Human Warmth & Acoustic Anti-Sibilance Filter
-    const HUMAN_AUDIO_FILTER = 'highpass=f=80,lowpass=f=11000,equalizer=f=180:t=q:w=1.2:g=1.4,equalizer=f=3000:t=q:w=1.0:g=0.6,acompressor=threshold=-18dB:ratio=2.2:attack=20:release=140,volume=1.05';
     await new Promise((resolve, reject) => {
       const proc = spawn(ffmpegPath, [
         '-hide_banner', '-loglevel', 'error', '-y',
         '-i', tempInput,
-        '-af', HUMAN_AUDIO_FILTER,
+        '-af', personaFilter,
         '-c:a', 'libopus', '-b:a', '96k', '-vbr', 'on',
         '-ac', '1', '-ar', '48000', '-f', 'ogg',
         outputFilePath,

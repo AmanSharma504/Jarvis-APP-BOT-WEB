@@ -38,6 +38,50 @@ const MIME_TYPES = {
   '.apk': 'application/vnd.android.package-archive',
 };
 
+/**
+ * Automated 15-20 Min Cache Clearance Engine
+ * Automatically purges expired speech clips, music cache, and temp files
+ */
+async function runAutoCacheCleanup(maxAgeMs = 15 * 60 * 1000) {
+  let clearedCount = 0;
+  let freedBytes = 0;
+  const now = Date.now();
+  const dirs = [
+    join(PUBLIC_DIR, 'audio'),
+    CACHE_DIR,
+    tmpdir(),
+  ];
+
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue;
+    try {
+      const files = await fs.promises.readdir(dir);
+      for (const file of files) {
+        if (dir === tmpdir() && !file.startsWith('jarvis_')) continue;
+        const fullPath = join(dir, file);
+        try {
+          const s = await fs.promises.stat(fullPath);
+          if (maxAgeMs === 0 || (now - s.mtimeMs > maxAgeMs)) {
+            if (s.isDirectory()) {
+              await fs.promises.rm(fullPath, { recursive: true, force: true }).catch(() => {});
+            } else {
+              freedBytes += s.size;
+              await fs.promises.unlink(fullPath).catch(() => {});
+            }
+            clearedCount++;
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+  return { clearedCount, freedBytes };
+}
+
+// Recurring 15-minute automatic cache clearance schedule
+setInterval(() => {
+  runAutoCacheCleanup(15 * 60 * 1000).catch(() => {});
+}, 15 * 60 * 1000);
+
 export function createWebServer(context) {
   const {
     port = 3000,
@@ -79,6 +123,13 @@ export function createWebServer(context) {
       // 0. Cloud Health Check
       if ((pathname === '/health' || pathname === '/api/health') && req.method === 'GET') {
         sendJSON(res, { ok: true, status: 'healthy', uptime: process.uptime() });
+        return;
+      }
+
+      // 0.1 Cache Clearance Engine (Automatic & Manual)
+      if ((pathname === '/api/admin/clear_cache' || pathname === '/api/cache/clear') && req.method === 'POST') {
+        const stats = await runAutoCacheCleanup(0);
+        sendJSON(res, { ok: true, message: 'All cache cleared successfully.', stats });
         return;
       }
 
@@ -191,41 +242,64 @@ export function createWebServer(context) {
         const startTime = Date.now();
         const body = await parseJSONBody(req);
         const userPrompt = (body.message || '').trim();
-        const voiceId = body.voiceId || 'mcu_jarvis';
+        const voiceId = body.voiceId || body.voiceProfile || body.voice || 'mcu_jarvis';
         const languageCode = body.languageCode || 'hi';
         const isLive = Boolean(body.isLive);
-        const requestedModel = body.model || process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash';
+        const requestedModel = body.model || process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-lightning:free';
+        let activeModel = requestedModel;
 
         if (!userPrompt) {
           sendJSON(res, { ok: false, error: 'Message cannot be empty' }, 400);
           return;
         }
 
-        // Real-time intent detection (news, weather, stock, market, crypto, live scores)
-        const isRealTime = /(?:news|today|latest|current|update|market|price|score|weather|stock|crypto|आज|ताजा|न्यूज़|खबर|मौसम|रेट|भाव|वर्तमान|अभी)/i.test(userPrompt);
-        let activeModel = requestedModel;
-        if (isRealTime && activeModel.includes('gemini')) {
-          activeModel = 'google/gemini-2.5-flash:online';
+        // Match selected voice accurately by ID, name, or canonical alias
+        let selectedVoice = (VOICE_PROFILES || []).find(v => v.id === voiceId || v.id.toLowerCase() === String(voiceId).toLowerCase());
+        if (!selectedVoice) {
+          const rawV = String(voiceId).toLowerCase();
+          if (/ultron|अल्ट्रॉन|अल्ट्रोन/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'mcu_ultron');
+          else if (/friday|फ्राइडे/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'mcu_friday');
+          else if (/vision|विज़न|विजन/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'mcu_vision');
+          else if (/jarvis|जार्विस/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'mcu_jarvis');
+          else if (/neha|नेहा/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'cartesia_1' || v.id.includes('neha'));
+          else if (/rahul|राहुल/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'cartesia_2' || v.id.includes('rahul'));
+          else if (/arjun|अर्जुन/i.test(rawV)) selectedVoice = (VOICE_PROFILES || []).find(v => v.id === 'host_arjun' || v.id.includes('arjun'));
+          else selectedVoice = (VOICE_PROFILES || []).find(v => v.id.toLowerCase().includes(rawV) || v.name.toLowerCase().includes(rawV));
+        }
+        if (!selectedVoice) selectedVoice = (VOICE_PROFILES && VOICE_PROFILES[0]) || { id: 'mcu_jarvis', name: 'J.A.R.V.I.S.' };
+
+        const rawLang = (languageCode || 'hi').toString().toLowerCase().trim();
+        const langConfig = Object.entries(SUPPORTED_LANGUAGES || {}).find(([k, l]) =>
+          k.toLowerCase() === rawLang || l.code?.toLowerCase() === rawLang || (l.aliases && l.aliases.map(a => a.toLowerCase()).includes(rawLang))
+        )?.[1] || { name: 'हिंदी', code: 'hi' };
+
+        // Construct Persona-Specific System Prompt
+        let personaRole = 'J.A.R.V.I.S., Tony Stark\'s personal British AI from Marvel\'s Avengers';
+        if (selectedVoice.id.includes('ultron')) {
+          personaRole = 'ULTRON, the formidable, highly intelligent robotic AI from Marvel\'s Avengers with dry wit and profound confidence';
+        } else if (selectedVoice.id.includes('friday')) {
+          personaRole = 'F.R.I.D.A.Y., Tony Stark\'s sharp, tactical combat and intelligence assistant';
+        } else if (selectedVoice.id.includes('vision')) {
+          personaRole = 'VISION, the philosophical, serene synthezoid AI with deep calm and intellectual precision';
+        } else if (selectedVoice.id.includes('neha') || selectedVoice.id === 'cartesia_1') {
+          personaRole = 'Neha, a warm, polite, highly intuitive human-like conversational virtual assistant';
+        } else if (selectedVoice.id.includes('arjun')) {
+          personaRole = 'Host Arjun, a dynamic, charismatic, energetic studio broadcast voice';
         }
 
-        const selectedVoice = (VOICE_PROFILES || []).find(v => v.id === voiceId) || (VOICE_PROFILES && VOICE_PROFILES[0]) || { id: 'mcu_jarvis', name: 'J.A.R.V.I.S.' };
-        const langConfig = Object.values(SUPPORTED_LANGUAGES || {}).find(l => l.code === languageCode) || { name: 'हिंदी', code: 'hi' };
-
         let systemPrompt;
-        let maxTokens = 500;
+        let maxTokens = isLive ? 45 : 120;
         if (isLive) {
-          systemPrompt = `You are J.A.R.V.I.S., Tony Stark's supercomputer AI from Marvel's Avengers running in live voice mode.
-Active Language Directive: The user is speaking in "${langConfig.name}". Formulate your entire response fluently, warmly, and naturally in ${langConfig.name}.
-Persona: Supercomputer-speed, intelligent, crisp, articulate, and naturally conversational.
-CRITICAL RULES FOR LIVE VOICE MODE:
-1. Provide a direct, punchy, spoken response in 1 or 2 concise sentences (strictly under 35 words).
-2. DO NOT use markdown, bullet points, asterisks, numbered lists, emojis, or code blocks.
-3. Be instantaneous, warm, and natural like Gemini Live or ChatGPT Voice.`;
-          maxTokens = 65;
+          systemPrompt = `You are ${personaRole} in ultra-fast live voice mode.
+Active Language: "${langConfig.name}". Reply strictly in ${langConfig.name}.
+RULES:
+1. Provide a direct, punchy spoken response in 1 short sentence (under 18 words).
+2. NO markdown, emojis, asterisks, bullet points, reasoning, or lists.
+3. Be instantaneous, natural, and conversational.`;
         } else {
-          systemPrompt = `You are J.A.R.V.I.S., Tony Stark's personal AI from Marvel's Avengers.
+          systemPrompt = `You are ${personaRole}.
 Active Language Directive: The user is speaking in "${langConfig.name}". Formulate your entire response fluently and naturally in ${langConfig.name}.
-Persona: Intelligent, polite, articulate, and naturally conversational. Give direct, insightful, and helpful answers.`;
+Persona: Intelligent, polite, articulate, and naturally conversational. Give direct, insightful, and helpful answers without internal reasoning scratchpads.`;
         }
 
         let replyText = 'नमस्ते सर! मैं आपकी सेवा में तत्पर हूँ।';
@@ -233,43 +307,73 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
 
         try {
           if (apiKey) {
-            const controller = new AbortController();
-            const timeoutMs = isRealTime ? 7000 : 3500;
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            const candidateModels = [
+              requestedModel,
+              'nvidia/nemotron-3.5-lightning:free',
+              'nvidia/nemotron-3-ultra-550b-a55b:free',
+              'openrouter/free',
+            ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
 
-            const aiRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://github.com/jarvis-assistant',
-                'X-Title': 'Jarvis Live Voice Hub',
-              },
-              body: JSON.stringify({
-                model: activeModel,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: userPrompt }
-                ],
-                max_tokens: maxTokens,
-                temperature: 0.6,
-              }),
-              signal: controller.signal,
-            });
-            clearTimeout(timer);
+            let answered = false;
 
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              const gen = aiData?.choices?.[0]?.message?.content?.trim();
-              if (gen) replyText = gen;
-            } else {
-              throw new Error(`OpenRouter HTTP ${aiRes.status}`);
+            for (const modelCandidate of candidateModels) {
+              if (answered) break;
+              try {
+                const controller = new AbortController();
+                const timeoutMs = isLive ? 3500 : 8000;
+                const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+                const reqBody = {
+                  model: modelCandidate,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                  ],
+                  max_tokens: modelCandidate.includes('nemotron') ? (isLive ? 60 : 140) : (modelCandidate === 'openrouter/free' ? 280 : maxTokens),
+                  temperature: 0.6,
+                };
+                if (modelCandidate.includes('nemotron')) {
+                  reqBody.reasoning = { effort: 'none' };
+                }
+
+                let aiRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://github.com/jarvis-assistant',
+                    'X-Title': 'Jarvis Live Voice Hub',
+                  },
+                  body: JSON.stringify(reqBody),
+                  signal: controller.signal,
+                });
+
+                clearTimeout(timer);
+
+                if (aiRes.ok) {
+                  const aiData = await aiRes.json();
+                  const msg = aiData?.choices?.[0]?.message;
+                  let gen = msg?.content?.trim();
+                  if (gen) {
+                    gen = gen.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                    gen = gen.replace(/^thought\s+[\s\S]*?\n\n/gi, '').trim();
+                    replyText = gen;
+                    activeModel = modelCandidate;
+                    answered = true;
+                    break;
+                  }
+                } else {
+                  console.warn(`[Web Chat Notice]: Model ${modelCandidate} status ${aiRes.status}. Trying next free model...`);
+                }
+              } catch (candidateErr) {
+                console.warn(`[Web Chat Notice]: Model ${modelCandidate} error: ${candidateErr.message}`);
+              }
             }
           } else if (typeof queryAI === 'function') {
             replyText = await queryAI([
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt },
-            ]);
+            ], activeModel);
           }
         } catch (aiErr) {
           console.warn('[Web Chat AI Optimization Warning]:', aiErr.message);
@@ -278,9 +382,15 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
               replyText = await queryAI([
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
-              ]);
+              ], activeModel);
             } catch {}
           }
+        }
+
+        if (replyText.includes('अस्थायी रूप से उच्च लोड') || !replyText.trim()) {
+          replyText = langConfig.code === 'en'
+            ? "I'm right here with you, Sir. All neural systems and voice engines are active. How may I assist you?"
+            : "जी सर, मैं पूरी तरह तैयार हूँ। सभी सिस्टम और वॉयस इंजन सक्रिय हैं। बताइए क्या मदद करूँ?";
         }
 
         // Clean text for TTS
@@ -297,7 +407,7 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
           const audioId = `web_speech_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.mp3`;
           const audioPath = join(PUBLIC_DIR, 'audio', audioId);
           await fs.promises.mkdir(join(PUBLIC_DIR, 'audio'), { recursive: true });
-          await synthesizeSpeech(ttsText, selectedVoice, audioPath, languageCode);
+          await synthesizeSpeech(ttsText, selectedVoice, audioPath, langConfig.code);
           audioFileName = `/audio/${audioId}`;
         } catch (ttsErr) {
           console.warn('[Web Chat TTS Error]:', ttsErr.message);
@@ -436,14 +546,15 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
       }
 
       // 11. Android APK Download with proper attachment headers
-      if (pathname === '/downloads/Jarvis_Assistant_v1.0.apk' && (req.method === 'GET' || req.method === 'HEAD')) {
-        const apkFile = join(PUBLIC_DIR, 'downloads/Jarvis_Assistant_v1.0.apk');
+      if (pathname.startsWith('/downloads/') && pathname.endsWith('.apk') && (req.method === 'GET' || req.method === 'HEAD')) {
+        const apkFile = join(PUBLIC_DIR, pathname);
         if (fs.existsSync(apkFile)) {
           const s = await stat(apkFile);
+          const fname = pathname.split('/').pop();
           res.writeHead(200, {
             'Content-Type': 'application/vnd.android.package-archive',
             'Content-Length': s.size,
-            'Content-Disposition': 'attachment; filename="Jarvis_Assistant_v1.0.apk"',
+            'Content-Disposition': `attachment; filename="${fname}"`,
           });
           if (req.method === 'HEAD') {
             res.end();
@@ -460,8 +571,10 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
         const audioPath = join(PUBLIC_DIR, safePath);
         if (fs.existsSync(audioPath)) {
           const s = await stat(audioPath);
+          const ext = extname(audioPath).toLowerCase();
+          const contentType = MIME_TYPES[ext] || 'audio/mpeg';
           res.writeHead(200, {
-            'Content-Type': 'audio/ogg',
+            'Content-Type': contentType,
             'Content-Length': s.size,
           });
           fs.createReadStream(audioPath).pipe(res);
