@@ -102,11 +102,43 @@ export function createWebServer(context) {
     queryAI,
   } = context;
 
+  // Security & Admin Authentication Config
+  const ADMIN_TOKEN = process.env.ADMIN_TOKEN || process.env.ADMIN_SECRET || process.env.BOT_OWNER_ID || 'jarvis_owner_2026';
+  const ipRateLimits = new Map();
+
+  function checkRateLimit(ip, limit = 60, windowMs = 60000) {
+    const now = Date.now();
+    const entry = ipRateLimits.get(ip) || { count: 0, resetAt: now + windowMs };
+    if (now > entry.resetAt) {
+      entry.count = 1;
+      entry.resetAt = now + windowMs;
+    } else {
+      entry.count++;
+    }
+    ipRateLimits.set(ip, entry);
+    return entry.count <= limit;
+  }
+
+  function isAuthorizedAdmin(req) {
+    const token = req.headers['x-admin-token'] || req.headers['authorization']?.replace(/^Bearer\s+/i, '');
+    if (!token) return false;
+    return token === ADMIN_TOKEN || token === String(process.env.BOT_OWNER_ID);
+  }
+
+  function isAuthorizedAdminOrLocal(req) {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
+    if (clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost') return true;
+    return isAuthorizedAdmin(req);
+  }
+
   const server = http.createServer(async (req, res) => {
-    // Enable CORS for modern web apps & mobile clients
+    // Enable CORS & Comprehensive Security Headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Token');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204);
@@ -117,6 +149,7 @@ export function createWebServer(context) {
     try {
       const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
       const pathname = url.pathname;
+      const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
 
       // ================= API ROUTES =================
 
@@ -126,8 +159,12 @@ export function createWebServer(context) {
         return;
       }
 
-      // 0.1 Cache Clearance Engine (Automatic & Manual)
+      // 0.1 Cache Clearance Engine (Protected)
       if ((pathname === '/api/admin/clear_cache' || pathname === '/api/cache/clear') && req.method === 'POST') {
+        if (!isAuthorizedAdminOrLocal(req)) {
+          sendJSON(res, { ok: false, error: 'Unauthorized: Admin authentication required.' }, 401);
+          return;
+        }
         const stats = await runAutoCacheCleanup(0);
         sendJSON(res, { ok: true, message: 'All cache cleared successfully.', stats });
         return;
@@ -179,8 +216,12 @@ export function createWebServer(context) {
         return;
       }
 
-      // 3. Remove / Deactivate a Telegram Chat
+      // 3. Remove / Deactivate a Telegram Chat (Protected)
       if (pathname === '/api/chats/remove' && req.method === 'POST') {
+        if (!isAuthorizedAdminOrLocal(req)) {
+          sendJSON(res, { ok: false, error: 'Unauthorized: Admin authentication required.' }, 401);
+          return;
+        }
         const body = await parseJSONBody(req);
         const chatId = String(body.chatId);
         if (knownChats?.has?.(chatId)) {
@@ -191,8 +232,12 @@ export function createWebServer(context) {
         return;
       }
 
-      // 4. Broadcast Message to All or Selected Telegram Chats
+      // 4. Broadcast Message to All or Selected Telegram Chats (Protected)
       if (pathname === '/api/chats/broadcast' && req.method === 'POST') {
+        if (!isAuthorizedAdminOrLocal(req)) {
+          sendJSON(res, { ok: false, error: 'Unauthorized: Admin authentication required.' }, 401);
+          return;
+        }
         const body = await parseJSONBody(req);
         const text = (body.text || '').trim();
         const targetType = body.targetType || 'all'; // 'all', 'groups', 'private'
@@ -237,8 +282,12 @@ export function createWebServer(context) {
         return;
       }
 
-      // 6. Conversational Chat & Supercomputer-Fast Live Voice Response
+      // 6. Conversational Chat & Supercomputer-Fast Live Voice Response (Rate-Limited)
       if (pathname === '/api/chat' && req.method === 'POST') {
+        if (!checkRateLimit(clientIp, 60, 60000)) {
+          sendJSON(res, { ok: false, error: 'Rate limit exceeded. Please wait a moment.' }, 429);
+          return;
+        }
         const startTime = Date.now();
         const body = await parseJSONBody(req);
         const userPrompt = (body.message || '').trim();
@@ -460,8 +509,12 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
         return;
       }
 
-      // 8. Stream Media into Telegram Group VC from Web
+      // 8. Stream Media into Telegram Group VC from Web (Protected)
       if (pathname === '/api/music/stream_to_vc' && req.method === 'POST') {
+        if (!isAuthorizedAdminOrLocal(req)) {
+          sendJSON(res, { ok: false, error: 'Unauthorized: Admin authentication required to control VC stream.' }, 401);
+          return;
+        }
         const body = await parseJSONBody(req);
         const chatId = body.chatId || '-1003988874168';
         const title = body.title || 'Live Stream';
@@ -479,8 +532,12 @@ Persona: Intelligent, polite, articulate, and naturally conversational. Give dir
         return;
       }
 
-      // 9. VC Playback Control from Web (Supports pause, resume, stop, seek, skip)
+      // 9. VC Playback Control from Web (Protected: Supports pause, resume, stop, seek, skip)
       if (pathname === '/api/music/control' && req.method === 'POST') {
+        if (!isAuthorizedAdminOrLocal(req)) {
+          sendJSON(res, { ok: false, error: 'Unauthorized: Admin authentication required to control playback.' }, 401);
+          return;
+        }
         const body = await parseJSONBody(req);
         const action = body.action || 'stop'; // 'pause', 'resume', 'stop', 'seek'
         const chatId = body.chatId || '-1003988874168';
